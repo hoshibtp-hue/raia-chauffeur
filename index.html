@@ -1,0 +1,1653 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="application-name" content="RAIA">
+<meta name="theme-color" content="#1E5631">
+<meta name="apple-mobile-web-app-title" content="RAIA Chauffeur">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="description" content="RAIA Chauffeur – relevés de compteur, carburant et pannes – HOSHI BTP">
+<title>RAIA Chauffeur</title>
+<style>
+:root{
+  --vert:#1E5631; --vert2:#2E7D32; --vert-l:#E8F5E9; --vert-xl:#F4FAF4;
+  --rouge:#C62828; --rouge-l:#FDECEA; --orange:#E65100; --orange-l:#FFF3E0; --bleu:#1E3A8A; --bleu-l:#DBEAFE;
+  --gris:#6B7280; --gris-l:#F3F4F6; --ligne:#E5E7EB; --encre:#1F2937; --fond:#F7F8F7; --blanc:#FFFFFF;
+  --rayon:10px; --ombre:0 1px 2px rgba(0,0,0,.06),0 2px 8px rgba(0,0,0,.05);
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;font-family:"Segoe UI",Roboto,Arial,sans-serif;color:var(--encre);background:var(--fond);font-size:14px}
+button,input,select,textarea{font:inherit;color:inherit}
+a{color:var(--vert2)}
+.cache{display:none!important}
+
+/* Connexion */
+.ecran-cnx{min-height:100%;display:flex;align-items:center;justify-content:center;padding:16px;
+  background:linear-gradient(135deg,#1E5631 0%,#2E7D32 55%,#4C9A50 100%)}
+.carte-cnx{background:var(--blanc);border-radius:16px;box-shadow:0 10px 40px rgba(0,0,0,.25);padding:36px 32px;width:100%;max-width:400px}
+.logo{display:flex;align-items:center;gap:12px;margin-bottom:6px}
+.logo-mark{width:46px;height:46px;border-radius:12px;background:var(--vert);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:22px;letter-spacing:.5px}
+.logo-txt b{display:block;font-size:24px;letter-spacing:3px;color:var(--vert)}
+.logo-txt span{font-size:12px;color:var(--gris)}
+.carte-cnx h2{font-size:15px;font-weight:600;margin:22px 0 14px;color:var(--gris)}
+.champ{margin-bottom:14px}
+.champ label{display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px}
+.champ input,.champ select,.champ textarea{width:100%;padding:10px 12px;border:1px solid #D1D5DB;border-radius:8px;background:#fff;outline:none;transition:border .15s,box-shadow .15s}
+.champ input:focus,.champ select:focus,.champ textarea:focus{border-color:var(--vert2);box-shadow:0 0 0 3px rgba(46,125,50,.15)}
+.champ input[disabled],.champ textarea[disabled],.champ select[disabled]{background:var(--gris-l);color:#4B5563}
+.champ .aide{font-size:11px;color:var(--gris);margin-top:4px}
+.req::after{content:" *";color:var(--rouge)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:1px solid transparent;border-radius:8px;padding:9px 16px;font-weight:600;cursor:pointer;background:var(--gris-l);transition:filter .15s,background .15s;white-space:nowrap}
+.btn:hover{filter:brightness(.96)}
+.btn:disabled{opacity:.55;cursor:default}
+.btn-p{background:var(--vert);color:#fff}
+.btn-r{background:var(--rouge);color:#fff}
+.btn-c{background:#fff;border-color:#D1D5DB}
+.btn-s{padding:6px 10px;font-size:13px}
+.btn-bloc{width:100%;padding:12px}
+.msg{padding:10px 12px;border-radius:8px;font-size:13px;margin-bottom:14px}
+.msg-e{background:var(--rouge-l);color:var(--rouge)}
+.msg-i{background:var(--vert-l);color:var(--vert)}
+.pied-cnx{margin-top:18px;font-size:11px;color:var(--gris);text-align:center}
+
+/* Coquille */
+.coquille{display:flex;min-height:100%}
+.barre{width:236px;background:var(--vert);color:#E8F5E9;display:flex;flex-direction:column;flex-shrink:0;position:sticky;top:0;height:100vh;overflow-y:auto}
+.barre .logo{padding:18px 18px 10px}
+.barre .logo-mark{background:#fff;color:var(--vert);width:38px;height:38px;font-size:18px}
+.barre .logo-txt b{color:#fff;font-size:20px}
+.barre .logo-txt span{color:#A5D6A7}
+.nav-groupe{font-size:10.5px;text-transform:uppercase;letter-spacing:1px;color:#A5D6A7;padding:16px 20px 6px}
+.nav a{display:flex;align-items:center;gap:10px;padding:9px 20px;color:#E8F5E9;text-decoration:none;font-size:13.5px;border-left:3px solid transparent}
+.nav a:hover{background:rgba(255,255,255,.07)}
+.nav a.actif{background:rgba(255,255,255,.13);border-left-color:#fff;color:#fff;font-weight:600}
+.nav svg{width:17px;height:17px;flex-shrink:0;opacity:.9}
+.barre .bas{margin-top:auto;padding:14px 18px;border-top:1px solid rgba(255,255,255,.12);font-size:12px}
+.barre .bas .nom{font-weight:600;color:#fff}
+.badge{display:inline-block;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:600}
+.b-ADMIN{background:#FFE082;color:#5D4037}.b-EDITEUR{background:#C8E6C9;color:#1B5E20}.b-UTILISATEUR{background:#BBDEFB;color:#0D47A1}.b-INVITE{background:#E0E0E0;color:#424242}
+.principal{flex:1;min-width:0;display:flex;flex-direction:column}
+.entete{background:#fff;border-bottom:1px solid var(--ligne);padding:12px 24px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:5}
+.entete h1{font-size:18px;margin:0;font-weight:700}
+.entete .sous{color:var(--gris);font-size:12px}
+.burger{display:none;background:none;border:0;padding:4px;cursor:pointer}
+.contenu{padding:20px 24px 40px}
+
+/* Tableau de bord */
+.grille-kpi{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:12px;margin-bottom:18px}
+.kpi{background:#fff;border-radius:var(--rayon);box-shadow:var(--ombre);padding:14px 16px;border-left:4px solid var(--vert2)}
+.kpi.r{border-left-color:var(--rouge)}.kpi.o{border-left-color:var(--orange)}
+.kpi .l{font-size:11px;font-weight:700;color:var(--gris);text-transform:uppercase;letter-spacing:.4px}
+.kpi .v{font-size:21px;font-weight:700;margin:6px 0 2px;font-variant-numeric:tabular-nums}
+.kpi.r .v{color:var(--rouge)}
+.kpi .s{font-size:12px;color:var(--gris)}
+.bloc{background:#fff;border-radius:var(--rayon);box-shadow:var(--ombre);padding:16px 18px;margin-bottom:16px}
+.bloc h3{margin:0 0 12px;font-size:14px;font-weight:700;color:var(--vert)}
+.deux{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.deux>*,.bloc,.contenu{min-width:0}
+.tab-wrap{max-width:100%}
+.titre-sec{display:flex;align-items:center;gap:10px;margin:6px 0 12px}
+.titre-sec h2{font-size:15px;margin:0;color:var(--encre)}
+.titre-sec .trait{flex:1;height:1px;background:var(--ligne)}
+.barres .ln{display:grid;grid-template-columns:110px 1fr 120px;align-items:center;gap:10px;margin:7px 0;font-size:12.5px}
+.barres .piste{background:var(--gris-l);border-radius:4px;height:14px;overflow:hidden}
+.barres .rempli{height:100%;background:var(--vert2);border-radius:4px}
+.barres .rempli.r{background:#E57373}
+.barres .val{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
+.cols{display:flex;align-items:flex-end;gap:10px;height:150px;padding-top:6px}
+.cols .c{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;font-size:11px;color:var(--gris)}
+.cols .c i{display:block;width:100%;max-width:44px;background:var(--vert2);border-radius:4px 4px 0 0;min-height:2px}
+.cols .c b{font-size:10.5px;color:var(--encre);margin-bottom:3px;font-weight:600;white-space:nowrap}
+
+/* Tables */
+.outils{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px}
+.outils input[type=search],.outils select{padding:8px 10px;border:1px solid #D1D5DB;border-radius:8px;background:#fff}
+.outils input[type=search]{min-width:240px;flex:1;max-width:380px}
+.outils .esp{flex:1}
+tr.grp td{background:var(--vert-l);color:var(--vert);font-weight:700;cursor:pointer}
+tr.grp td.n{white-space:nowrap}
+.btn-on{background:var(--vert);color:#fff;border-color:var(--vert)}
+.compte{font-size:12px;color:var(--gris)}
+.tab-wrap{background:#fff;border-radius:var(--rayon);box-shadow:var(--ombre);overflow:auto}
+table.t{border-collapse:collapse;width:100%;font-size:13px}
+table.t th{background:var(--vert-xl);color:var(--vert);text-align:left;font-size:11.5px;text-transform:uppercase;letter-spacing:.3px;padding:9px 10px;border-bottom:1px solid var(--ligne);position:sticky;top:0;cursor:pointer;white-space:nowrap;user-select:none}
+table.t th.n,table.t td.n{text-align:right}
+table.t td{padding:8px 10px;border-bottom:1px solid #F0F1F2;white-space:nowrap;max-width:280px;overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums}
+table.t tbody tr{cursor:pointer}
+table.t tbody tr:hover{background:#FAFBFA}
+table.t tfoot td{font-weight:700;background:var(--vert-xl);border-top:1px solid var(--ligne)}
+.pastille{display:inline-block;padding:2px 9px;border-radius:99px;font-size:11.5px;font-weight:600}
+.s-retard{background:var(--rouge-l);color:var(--rouge)}.s-proche{background:var(--orange-l);color:var(--orange)}
+.s-payee{background:var(--vert-l);color:var(--vert)}.s-annulee{background:var(--gris-l);color:var(--gris);text-decoration:line-through}
+.s-attente{background:var(--bleu-l);color:var(--bleu)}
+.pagin{display:flex;gap:6px;align-items:center;justify-content:flex-end;padding:10px;font-size:12px;color:var(--gris)}
+.vide{padding:40px;text-align:center;color:var(--gris)}
+
+/* Modale */
+.voile{position:fixed;inset:0;background:rgba(17,24,39,.45);display:flex;align-items:flex-start;justify-content:center;padding:40px 16px;z-index:50;overflow:auto}
+.modale{background:#fff;border-radius:14px;width:100%;max-width:760px;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.modale .tete{padding:16px 20px;border-bottom:1px solid var(--ligne);display:flex;align-items:center;gap:10px}
+.modale .tete h3{margin:0;font-size:16px;flex:1}
+.modale .corps{padding:18px 20px;display:grid;grid-template-columns:1fr 1fr;gap:0 16px}
+.modale .corps .large{grid-column:1/-1}
+.modale .pied{padding:14px 20px;border-top:1px solid var(--ligne);display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
+.fermer{background:none;border:0;font-size:22px;line-height:1;cursor:pointer;color:var(--gris)}
+.cases{display:flex;flex-wrap:wrap;gap:8px}
+.cases label{display:flex;gap:6px;align-items:center;font-size:13px;font-weight:500;border:1px solid #D1D5DB;border-radius:8px;padding:7px 10px;cursor:pointer}
+.ligne-url{display:flex;gap:6px}
+.ligne-url input{flex:1}
+
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#111827;color:#fff;padding:10px 18px;border-radius:8px;font-size:13px;z-index:99;box-shadow:var(--ombre)}
+.toast.e{background:var(--rouge)}
+.chargement{display:flex;align-items:center;justify-content:center;gap:10px;padding:50px;color:var(--gris)}
+.rond{width:20px;height:20px;border:3px solid #C8E6C9;border-top-color:var(--vert2);border-radius:50%;animation:t .8s linear infinite}
+@keyframes t{to{transform:rotate(360deg)}}
+.droits-info{font-size:12px;color:var(--gris);background:var(--gris-l);padding:6px 10px;border-radius:6px}
+
+.onglets{display:flex;gap:6px;margin:4px 0 14px;flex-wrap:wrap}
+.onglets button{border:1px solid var(--ligne);background:#fff;padding:7px 14px;border-radius:99px;font-weight:600;cursor:pointer;font-size:13px;color:var(--encre);font-family:inherit}
+.onglets button.actif{background:var(--vert);color:#fff;border-color:var(--vert)}
+.onglets.petits button{padding:5px 11px;font-size:12px}
+.champ-mini{padding:5px 8px;border-radius:6px;border:1px solid #D1D5DB;font:inherit;font-size:12.5px;background:#fff}
+.n-e{color:var(--rouge);font-weight:700}.n-a{color:var(--orange);font-weight:700}.n-ok{color:var(--vert2);font-weight:700}
+table.tl tbody tr,table.t tr.tl{cursor:default}
+.piste-mini{background:var(--gris-l);border-radius:4px;height:10px;overflow:visible}
+.piste-mini>div{height:100%;background:var(--vert2);border-radius:4px}.piste-mini>div.r{background:#E57373}
+.piste-mini .repere{position:absolute;top:-4px;bottom:-4px;width:2px;background:var(--encre)}
+.obj{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.obj b{display:block;font-size:20px;margin-top:2px}
+.ctrl{border-bottom:1px solid #F0F1F2}.ctrl:last-child{border-bottom:0}
+.ctrl-t{display:grid;grid-template-columns:22px 1fr 70px;gap:8px;align-items:center;padding:10px 4px;cursor:pointer;font-size:13px}
+.ctrl-t .act{font-size:12px;color:var(--gris);margin-top:2px}
+.ctrl-d{display:none;padding:0 0 10px 26px;max-height:360px;overflow:auto}.ctrl.ouvert .ctrl-d{display:block}
+.ctrl-i{display:flex;justify-content:space-between;gap:10px;padding:6px 8px;border-radius:6px;font-size:12.5px;cursor:pointer}.ctrl-i:hover{background:var(--vert-xl)}
+.ctrl-i>span:first-child{min-width:0;overflow:hidden;text-overflow:ellipsis}
+.btn-envoi{padding:4px 10px;font-size:12px;display:inline-flex;align-items:center;gap:5px}.btn-envoi svg,#eAuto svg{width:14px;height:14px}
+#eAuto{display:inline-flex;align-items:center;gap:6px}
+.mdp{background:var(--vert-xl);color:var(--vert);padding:5px 10px;border-radius:6px;font-size:14px;font-weight:700;letter-spacing:.5px}
+.pied.envoi{flex-wrap:wrap}
+.ch{max-width:520px;margin:0 auto;padding:14px 14px 40px}
+.ch-tete{display:flex;align-items:center;gap:10px;margin:4px 0 14px}.ch-tete b{display:block;font-size:17px;color:var(--vert)}.ch-tete span{font-size:12.5px;color:var(--gris)}
+.ch-carte{background:#fff;border-radius:14px;box-shadow:var(--ombre);padding:16px;display:flex;flex-direction:column;gap:6px}
+.ch-carte label{font-size:13px;font-weight:700;color:var(--encre);margin-top:6px}
+.ch-carte input,.ch-carte select,.ch-carte textarea{font:inherit;font-size:16px;padding:11px 12px;border:1px solid #D1D5DB;border-radius:10px;background:#fff;width:100%;box-sizing:border-box}
+.ch-btn{margin-top:12px;background:var(--vert);color:#fff;border:0;border-radius:12px;padding:15px;font:inherit;font-size:16.5px;font-weight:700;cursor:pointer}
+.ch-btn:disabled{opacity:.6}
+.ch-photo{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;border:2px dashed #A5D6A7;background:var(--vert-xl);border-radius:12px;padding:18px;cursor:pointer;font-weight:700!important;color:var(--vert)!important;font-size:15px!important;text-align:center}
+.ch-photo.petit{padding:12px;font-size:13.5px!important}
+.ch-photo img{max-width:100%;max-height:260px;border-radius:8px}
+.ch-deux{display:grid;grid-template-columns:1fr 1fr;gap:10px}.ch-deux>div{display:flex;flex-direction:column;gap:6px}
+.ch-panne{display:flex!important;align-items:center;gap:8px;color:var(--rouge)!important}.ch-panne input{width:20px!important;height:20px}
+.ch-info{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}.ch-info>div{flex:1;min-width:140px;background:#fff;border-radius:12px;box-shadow:var(--ombre);padding:10px 12px}
+.ch-info span{display:block;font-size:11.5px;color:var(--gris);text-transform:uppercase;letter-spacing:.3px}.ch-info b{font-size:14px}
+.ch-hist{margin-top:14px;background:#fff;border-radius:12px;box-shadow:var(--ombre);padding:12px 14px;font-size:13.5px}
+.ch-hist>div{display:grid;grid-template-columns:1fr 1.2fr 60px;padding:6px 0;border-bottom:1px solid #F0F1F2}.ch-hist>div>span:nth-child(2),.ch-hist>div>span:nth-child(3){text-align:right}.ch-hist>div:last-child{border-bottom:0}
+.ch-pied{text-align:center;margin-top:16px}.ch-pied a{color:var(--gris);font-size:13px}
+.ch-ok{font-size:14.5px;font-weight:600}
+.ch-file{margin-bottom:12px;background:#FFF8E1;border:1px solid #FFE082;border-radius:12px;padding:10px 12px;font-size:13.5px}
+.ch-file.ok{background:var(--vert-xl);border-color:#A5D6A7}
+.ch-file b{display:block;margin-bottom:4px}.ch-file .it{padding:6px 0;border-top:1px solid rgba(0,0,0,.06)}.ch-file .it:first-of-type{border-top:0}
+.ch-file .it button{margin:4px 6px 0 0;padding:6px 10px;border-radius:8px;border:1px solid #D1D5DB;background:#fff;font:inherit;font-size:13px}
+.ch-file .it button.p{background:var(--vert);color:#fff;border-color:var(--vert)}
+.ch-hist .att{color:#B26A00}
+.ch-file .t b{display:inline;margin:0}
+#hl{position:fixed;top:0;left:0;right:0;z-index:999;background:#FFF3CD;color:#7A5200;border-bottom:1px solid #FFE08A;padding:7px 14px;font-size:13px;text-align:center}
+body.hors-ligne .principal{padding-top:34px}
+.rond-mini{display:inline-block;width:12px;height:12px;border:2px solid var(--vert-l);border-top-color:var(--vert);border-radius:50%;animation:t 1s linear infinite;vertical-align:-2px;margin-right:4px}
+@media (max-width:860px){.obj{grid-template-columns:1fr 1fr 1fr}.obj b{font-size:16px}.ctrl-i{flex-direction:column;gap:2px}}
+@media (max-width:860px){
+  .barre{position:fixed;left:-260px;z-index:40;transition:left .2s;height:100%}
+  .barre.ouverte{left:0;box-shadow:0 0 40px rgba(0,0,0,.4)}
+  .burger{display:block}
+  .deux{grid-template-columns:1fr}
+  .contenu{padding:14px}
+  .modale .corps{grid-template-columns:1fr}
+  .outils input[type=search]{min-width:0;max-width:none;width:100%}
+  .barres .ln{grid-template-columns:80px 1fr 96px}
+}
+</style>
+</head>
+<body>
+<div id="app"><div class="chargement"><div class="rond"></div>Chargement de RAIA…</div></div>
+
+<script>
+window.RAIA_PWA = true; window.RAIA_API = "https://script.google.com/macros/s/AKfycbyelA75Ys7N2JlborP9McD5XdkLnJBu0yZnImRtMfC9HWbXGgg_gsa8PsbgX7gTGJWVig/exec";
+/* Remplace google.script.run (Apps Script) par des appels HTTPS au serveur RAIA */
+window.google = { script: { run: (function () {
+  function mk(ok, ko) { return new Proxy({}, { get: function (_, k) {
+    if (k === 'withSuccessHandler') return function (h) { return mk(h, ko); };
+    if (k === 'withFailureHandler') return function (h) { return mk(ok, h); };
+    return function (token, action, params) {
+      if (k !== 'api') { ko && ko(new Error('Indisponible')); return; }
+      var ctrl = window.AbortController ? new AbortController() : null, t = setTimeout(function () { ctrl && ctrl.abort(); }, 90000);
+      fetch(window.RAIA_API + '?api=chauffeur', { method: 'POST', body: JSON.stringify({ token: token, action: action, params: params }), redirect: 'follow', signal: ctrl ? ctrl.signal : undefined })
+        .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+        .then(function (r) { clearTimeout(t); ok && ok(r); })
+        .catch(function (e) { clearTimeout(t); ko && ko(e); });
+    };
+  } }); }
+  return mk(null, null);
+})() } };
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () { }); });
+  var recharge = false;
+  navigator.serviceWorker && navigator.serviceWorker.addEventListener('controllerchange', function () {
+    if (recharge) return; recharge = true;
+    var k = document.getElementById('cK'); if (!k || !k.value) location.reload();
+  });
+}
+</script>
+<script>
+/* =====================================================================
+   RAIA – interface
+   ===================================================================== */
+var S = { token: null, user: null, ctx: null, vue: 'tdb', cache: {}, filtres: {}, annee: String(new Date().getFullYear()) };
+
+var ICONES = {
+  home: '<path d="M3 11l9-8 9 8v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/>',
+  receipt: '<path d="M6 2h12v20l-3-2-3 2-3-2-3 2zM9 7h6M9 11h6M9 15h4"/>',
+  wallet: '<path d="M3 7h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2zM3 7l12-4v4M17 13h.01"/>',
+  truck: '<path d="M2 6h11v10H2zM13 9h4l4 4v3h-8M6 19a2 2 0 1 0 0-.01M17 19a2 2 0 1 0 0-.01"/>',
+  gauge: '<path d="M12 14l4-4M4 18a9 9 0 1 1 16 0"/>',
+  users: '<path d="M16 19v-1a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v1M9 10a3 3 0 1 0 0-6 3 3 0 0 0 0 6M22 19v-1a4 4 0 0 0-3-3.9M16 4.1a3 3 0 0 1 0 5.8"/>',
+  shield: '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>',
+  list: '<path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>',
+  cog: '<path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>',
+  key: '<path d="M21 2l-2 2m-7.6 7.6a5.5 5.5 0 1 1-7.8 7.8 5.5 5.5 0 0 1 7.8-7.8zM15.5 7.5l3 3L22 7l-3-3"/>',
+  excel: '<path d="M4 3h11l5 5v13H4zM14 3v6h6M8 12l4 6M12 12l-4 6"/>',
+  send: '<path d="M22 2L11 13M22 2l-7 20-4-9-9-4z"/>',
+  chart: '<path d="M3 3v18h18M7 15l4-4 3 3 6-6M20 8V4h-4"/>',
+  out: '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>'
+};
+function ico(n) { return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + (ICONES[n] || ICONES.list) + '</svg>'; }
+
+/* ---------- utilitaires ---------- */
+function $(s, r) { return (r || document).querySelector(s); }
+function $$(s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); }
+function esc(v) { return String(v == null ? '' : v).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+var NF = new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 0 });
+var NF2 = new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 2 });
+function fcfa(v) { return (v === '' || v == null || isNaN(v)) ? '' : NF.format(Math.round(Number(v))) + ' F'; }
+function nb(v) { return (v === '' || v == null || isNaN(v)) ? '' : NF2.format(Number(v)); }
+function pct(v) { return (v == null || isNaN(v)) ? '' : (Number(v) * 100).toFixed(1).replace('.', ',') + ' %'; }
+function dfr(v) { var m = String(v || '').match(/^(\d{4})-(\d{2})-(\d{2})/); return m ? m[3] + '/' + m[2] + '/' + m[1] : (v || ''); }
+function mFr(k) { var M = ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.']; var p = k.split('-'); return M[Number(p[1]) - 1] + ' ' + p[0].slice(2); }
+function auj() { var d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+function toast(msg, err) { var t = document.createElement('div'); t.className = 'toast' + (err ? ' e' : ''); t.textContent = msg; document.body.appendChild(t); setTimeout(function () { t.remove(); }, err ? 5000 : 2600); }
+function stocker(k, v) { try { if (v == null) sessionStorage.removeItem(k); else sessionStorage.setItem(k, v); } catch (e) { } }
+function lire(k) { try { return sessionStorage.getItem(k); } catch (e) { return null; } }
+
+/* ---------- stockage local (IndexedDB, repli localStorage) ---------- */
+var LOC = (function () {
+  var dbp = null, mem = {};
+  function db() {
+    if (dbp) return dbp;
+    dbp = new Promise(function (ok) {
+      try {
+        var r = indexedDB.open('raia', 1);
+        r.onupgradeneeded = function () { r.result.createObjectStore('kv'); };
+        r.onsuccess = function () { ok(r.result); };
+        r.onerror = function () { ok(null); };
+      } catch (e) { ok(null); }
+    });
+    return dbp;
+  }
+  function tx(mode, f) {
+    return db().then(function (d) {
+      if (!d) return null;
+      return new Promise(function (ok) {
+        try { var t = d.transaction('kv', mode), st = t.objectStore('kv'), r = f(st); t.oncomplete = function () { ok(r && 'result' in r ? r.result : null); }; t.onerror = t.onabort = function () { ok(null); }; }
+        catch (e) { ok(null); }
+      });
+    });
+  }
+  return {
+    get: function (k) {
+      return tx('readonly', function (st) { return st.get(k); }).then(function (v) {
+        if (v != null) return v;
+        try { var x = localStorage.getItem('raia_kv_' + k); if (x) return JSON.parse(x); } catch (e) { }
+        return mem[k] == null ? null : mem[k];
+      });
+    },
+    set: function (k, v) {
+      mem[k] = v;
+      return db().then(function (d) {
+        if (d) return tx('readwrite', function (st) { return st.put(v, k); });
+        try { localStorage.setItem('raia_kv_' + k, JSON.stringify(v)); } catch (e) { }
+      });
+    },
+    del: function (k) { delete mem[k]; try { localStorage.removeItem('raia_kv_' + k); } catch (e) { } return tx('readwrite', function (st) { return st.delete(k); }); },
+    viderPrefixe: function (pre) {
+      Object.keys(mem).forEach(function (k) { if (k.indexOf(pre) === 0) delete mem[k]; });
+      return tx('readwrite', function (st) {
+        var r = st.openCursor();
+        r.onsuccess = function () { var c = r.result; if (!c) return; if (String(c.key).indexOf(pre) === 0) c.delete(); c.continue(); };
+        return r;
+      });
+    }
+  };
+})();
+function hhmm(ts) { var d = new Date(ts); return String(d.getDate()).padStart(2, '0') + '/' + String(d.getMonth() + 1).padStart(2, '0') + ' à ' + String(d.getHours()).padStart(2, '0') + 'h' + String(d.getMinutes()).padStart(2, '0'); }
+
+/* ---------- mode hors ligne (bureau) : consultation de la dernière copie ---------- */
+function cleHL(action, params) { return 'b:' + (S.user ? S.user.identifiant : lire('raia_u') || '?') + ':' + action + ':' + JSON.stringify(params || {}); }
+function bandeauHL(le) {
+  var b = document.getElementById('hl');
+  if (!le) { if (b) b.remove(); document.body.classList.remove('hors-ligne'); S.horsLigne = null; return; }
+  S.horsLigne = le;
+  if (!b) { b = document.createElement('div'); b.id = 'hl'; document.body.appendChild(b); }
+  document.body.classList.add('hors-ligne');
+  b.textContent = '📶 Hors connexion – vous consultez les données du ' + hhmm(le) + '. Les modifications reprendront dès le retour du réseau.';
+}
+window.addEventListener('online', function () {
+  if (MODE === 'chauffeur') return;
+  if (S.horsLigne && S.token && S.ctx) { bandeauHL(null); afficherVue(); }
+});
+
+var LECTURES = { tableauDeBord: 1, lister: 1, utilisateurs: 1, journal: 1, parametres: 1 };
+function appel(action, params) {
+  var ecran = S.ecran;
+  return new Promise(function (ok, ko) {
+    google.script.run
+      .withSuccessHandler(function (r) {
+        if (LECTURES[action] && ecran !== S.ecran) return; /* réponse d'un écran quitté entre-temps : ignorée */
+        if (r && r.ok) {
+          if (S.horsLigne) bandeauHL(null);
+          if (LECTURES[action]) LOC.set(cleHL(action, params), { le: Date.now(), data: r.data });
+          return ok(r.data);
+        }
+        var err = new Error((r && r.message) || 'Erreur inconnue'); err.code = r && r.erreur;
+        if (err.code === 'SESSION') { finSession(err.message); }
+        else if (err.code === 'MDP') { ecranMotDePasse(true); }
+        ko(err);
+      })
+      .withFailureHandler(function (e) {
+        if (LECTURES[action] && ecran !== S.ecran) return;
+        var reseau = new Error('Connexion au serveur impossible : ' + (e && e.message ? e.message : e));
+        if (!LECTURES[action]) return ko(navigator.onLine === false ? new Error('Hors connexion : enregistrement impossible pour le moment. Réessayez dès le retour du réseau.') : reseau);
+        LOC.get(cleHL(action, params)).then(function (c) {
+          if (ecran !== S.ecran) return;
+          if (!c) return ko(new Error('Hors connexion, et cet écran n\'a pas encore été ouvert sur cet ordinateur : aucune copie disponible.'));
+          bandeauHL(c.le); ok(c.data);
+        });
+      })
+      .api(S.token, action, params || {});
+  });
+}
+
+/* ---------- connexion ---------- */
+function ecranConnexion(msg, type) {
+  $('#app').innerHTML =
+    '<div class="ecran-cnx"><form class="carte-cnx" id="fCnx" autocomplete="on">' +
+    '<div class="logo"><div class="logo-mark">R</div><div class="logo-txt"><b>RAIA</b><span>HOSHI BTP · Logiciel de gestion</span></div></div>' +
+    '<h2>Connexion à votre espace</h2>' +
+    (msg ? '<div class="msg ' + (type === 'i' ? 'msg-i' : 'msg-e') + '">' + esc(msg) + '</div>' : '') +
+    '<div class="champ"><label for="cId">Identifiant</label><input id="cId" name="username" autocomplete="username" required autofocus></div>' +
+    '<div class="champ"><label for="cMdp">Mot de passe</label><input id="cMdp" name="password" type="password" autocomplete="current-password" required></div>' +
+    '<button class="btn btn-p btn-bloc" id="bCnx" type="submit">Se connecter</button>' +
+    '<div class="pied-cnx">Accès réservé au personnel de HOSHI BTP.<br>Mot de passe oublié : contactez l\'administrateur.</div>' +
+    '</form></div>';
+  $('#fCnx').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var b = $('#bCnx'); b.disabled = true; b.textContent = 'Connexion…';
+    google.script.run.withSuccessHandler(function (r) {
+      if (!r.ok) { ecranConnexion(r.message); return; }
+      S.token = r.data.token; S.user = r.data.utilisateur; stocker('raia_t', S.token); stocker('raia_u', S.user.identifiant);
+      if (r.data.contexte) LOC.set(cleHL('contexte', {}), { le: Date.now(), data: r.data.contexte });
+      if (S.user.doit_changer) return ecranMotDePasse(true);
+      S.ctx = r.data.contexte; S.vue = 'tdb'; coquille();
+    }).withFailureHandler(function (er) { ecranConnexion('Serveur injoignable : ' + er.message); })
+      .api(null, 'connexion', { identifiant: $('#cId').value, motdepasse: $('#cMdp').value });
+  });
+}
+
+function finSession(msg) { LOC.viderPrefixe('b:'); bandeauHL(null); stocker('raia_u', null); S.token = null; S.user = null; S.ctx = null; S.cache = {}; stocker('raia_t', null); ecranConnexion(msg || 'Vous êtes déconnecté.', 'i'); }
+
+function deconnexion() { appel('deconnexion').catch(function () { }).then(function () { finSession('Vous êtes déconnecté.'); }); }
+
+function ecranMotDePasse(force) {
+  var html = '<form id="fMdp">' +
+    (force ? '<div class="msg msg-i">Première connexion ou mot de passe réinitialisé : choisissez votre mot de passe personnel.</div>' : '') +
+    '<div class="champ"><label class="req">Mot de passe actuel</label><input type="password" id="mA" autocomplete="current-password" required></div>' +
+    '<div class="champ"><label class="req">Nouveau mot de passe</label><input type="password" id="mN" autocomplete="new-password" required><div class="aide">8 caractères minimum, avec des lettres et au moins un chiffre.</div></div>' +
+    '<div class="champ"><label class="req">Confirmer le nouveau mot de passe</label><input type="password" id="mC" autocomplete="new-password" required></div>' +
+    '<div id="mErr"></div><button class="btn btn-p btn-bloc" type="submit">Enregistrer le mot de passe</button></form>';
+  if (force) {
+    $('#app').innerHTML = '<div class="ecran-cnx"><div class="carte-cnx"><div class="logo"><div class="logo-mark">R</div><div class="logo-txt"><b>RAIA</b><span>' + esc(S.user ? S.user.nom : '') + '</span></div></div><h2>Changer votre mot de passe</h2>' + html +
+      '<div class="pied-cnx"><a href="#" id="lOut">Se déconnecter</a></div></div></div>';
+    $('#lOut').onclick = function (e) { e.preventDefault(); deconnexion(); };
+  } else {
+    entete('Mon compte', 'Changer mon mot de passe');
+    $('#contenu').innerHTML = '<div class="bloc" style="max-width:460px">' + html + '</div>';
+  }
+  $('#fMdp').addEventListener('submit', function (e) {
+    e.preventDefault();
+    if ($('#mN').value !== $('#mC').value) { $('#mErr').innerHTML = '<div class="msg msg-e">Les deux nouveaux mots de passe ne correspondent pas.</div>'; return; }
+    appel('changerMotDePasse', { ancien: $('#mA').value, nouveau: $('#mN').value }).then(function (d) {
+      S.user = d.utilisateur; S.ctx = d.contexte; toast('Mot de passe modifié'); S.vue = 'tdb'; coquille();
+    }).catch(function (er) { if ($('#mErr')) $('#mErr').innerHTML = '<div class="msg msg-e">' + esc(er.message) + '</div>'; });
+  });
+}
+
+/* ---------- coquille & navigation ---------- */
+function navItems() {
+  var t = S.ctx.tables, it = [{ g: '', v: 'tdb', l: 'Tableau de bord', i: 'home' }];
+  if (S.ctx.admin) it.push({ g: '', v: 'pilotage', l: 'Pilotage DG', i: 'chart' });
+  var fin = ['factures'], parc = ['engins', 'releves', 'personnel'];
+  var depDansParc = !t.factures;
+  fin.concat(depDansParc ? [] : ['depenses']).forEach(function (k) { if (t[k]) it.push({ g: 'Finance', v: k, l: t[k].titre, i: t[k].icone }); });
+  parc.concat(depDansParc ? ['depenses'] : []).forEach(function (k) { if (t[k]) it.push({ g: 'Parc & logistique', v: k, l: t[k].titre, i: t[k].icone }); });
+  if (S.ctx.admin) {
+    it.push({ g: 'Administration', v: 'utilisateurs', l: 'Utilisateurs & droits', i: 'shield' });
+    it.push({ g: 'Administration', v: 'journal', l: 'Journal des accès', i: 'list' });
+    it.push({ g: 'Administration', v: 'parametres', l: 'Paramètres & listes', i: 'cog' });
+  }
+  it.push({ g: 'Mon compte', v: 'compte', l: 'Mot de passe', i: 'key' });
+  it.push({ g: 'Mon compte', v: 'installer', l: 'Installer sur ce PC', i: 'home' });
+  if (S.user.profil !== 'INVITE') it.push({ g: 'Mon compte', v: 'excel', l: 'Liaison Excel', i: 'excel' });
+  return it;
+}
+
+function coquille() {
+  var u = S.ctx.utilisateur, g = null, nav = '';
+  navItems().forEach(function (x) {
+    if (x.g !== g) { g = x.g; if (g) nav += '<div class="nav-groupe">' + esc(g) + '</div>'; }
+    nav += '<a href="#" data-v="' + x.v + '" class="' + (S.vue === x.v ? 'actif' : '') + '">' + ico(x.i) + '<span>' + esc(x.l) + '</span></a>';
+  });
+  $('#app').innerHTML =
+    '<div class="coquille"><aside class="barre" id="barre">' +
+    '<div class="logo"><div class="logo-mark">R</div><div class="logo-txt"><b>RAIA</b><span>' + esc(S.ctx.app.societe) + '</span></div></div>' +
+    '<nav class="nav">' + nav + '<a href="#" data-v="out">' + ico('out') + '<span>Se déconnecter</span></a></nav>' +
+    '<div class="bas"><div class="nom">' + esc(u.nom) + '</div><div style="margin:4px 0 2px"><span class="badge b-' + u.profil + '">' + esc(S.ctx.profils[u.profil]) + '</span></div>' +
+    '<div style="color:#A5D6A7">' + esc((u.modules || []).map(function (m) { return S.ctx.modules[m]; }).join(' · ') || (u.profil === 'ADMIN' ? 'Tous les modules' : 'Aucun module')) + '</div></div></aside>' +
+    '<main class="principal"><header class="entete"><button class="burger" id="burger" aria-label="Menu"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg></button>' +
+    '<div><h1 id="titre"></h1><div class="sous" id="sousTitre"></div></div><div style="flex:1"></div><div id="actionsEntete"></div></header>' +
+    '<div class="contenu" id="contenu"></div></main></div>';
+  $$('.nav a').forEach(function (a) {
+    a.onclick = function (e) {
+      e.preventDefault(); $('#barre').classList.remove('ouverte');
+      var v = a.getAttribute('data-v'); if (v === 'out') return deconnexion();
+      S.vue = v; $$('.nav a').forEach(function (x) { x.classList.toggle('actif', x === a); }); afficherVue();
+    };
+  });
+  $('#burger').onclick = function () { $('#barre').classList.toggle('ouverte'); };
+  afficherVue();
+}
+
+function entete(t, s, actions) { S.ecran = (S.ecran || 0) + 1; $('#titre').textContent = t; $('#sousTitre').textContent = s || ''; $('#actionsEntete').innerHTML = actions || ''; }
+function chargement() { $('#contenu').innerHTML = '<div class="chargement"><div class="rond"></div>Chargement…</div>'; }
+function erreurVue(er) { $('#contenu').innerHTML = '<div class="msg msg-e">' + esc(er.message) + '</div>'; }
+
+function afficherVue() {
+  var v = S.vue;
+  if (v === 'tdb') return vueTableauDeBord();
+  if (v === 'pilotage' && S.ctx.admin) return vuePilotage();
+  if (v === 'compte') return ecranMotDePasse(false);
+  if (v === 'installer') return vueInstaller();
+  if (v === 'excel') return vueExcel();
+  if (v === 'utilisateurs') return vueUtilisateurs();
+  if (v === 'journal') return vueJournal();
+  if (v === 'parametres') return vueParametres();
+  if (S.ctx.tables[v]) return vueTable(v);
+  S.vue = 'tdb'; vueTableauDeBord();
+}
+
+/* ---------- tableau de bord ---------- */
+function vueTableauDeBord() {
+  var u = S.ctx.utilisateur;
+  entete('Tableau de bord', 'Bonjour ' + u.nom + ' · situation au ' + dfr(auj()));
+  chargement();
+  appel('tableauDeBord', { annee: S.annee }).then(function (d) {
+    var h = '';
+    if (!d.sections.finance && !d.sections.parc) {
+      h = '<div class="bloc vide">Aucun module ne vous est encore attribué.<br>Demandez à l\'administrateur de RAIA de vous donner accès à la Comptabilité, la Logistique ou au Commercial.</div>';
+    }
+    if (d.finance) h += blocFinance(d.finance);
+    if (d.parc) h += blocParc(d.parc);
+    $('#contenu').innerHTML = h;
+    var sel = $('#selAnnee');
+    if (sel) sel.onchange = function () { S.annee = sel.value; vueTableauDeBord(); };
+    $$('[data-fac]').forEach(function (tr) { tr.onclick = function () { ouvrirParId('factures', tr.getAttribute('data-fac')); }; });
+  }).catch(erreurVue);
+}
+
+function kpi(l, v, s, cl) { return '<div class="kpi ' + (cl || '') + '"><div class="l">' + esc(l) + '</div><div class="v">' + v + '</div><div class="s">' + (s || '') + '</div></div>'; }
+
+function blocFinance(f) {
+  var k = f.kpi, opts = '<option value="toutes">Toutes</option>' + f.annees_disponibles.slice().reverse().map(function (y) { return '<option ' + (String(y) === String(f.annee) ? 'selected' : '') + '>' + y + '</option>'; }).join('');
+  var h = '<div class="titre-sec"><h2>Facturation & recouvrement</h2><div class="trait"></div><label class="compte">Année <select id="selAnnee" class="btn-c" style="padding:5px 8px;border-radius:6px;border:1px solid #D1D5DB">' + opts + '</select></label></div>';
+  h += '<div class="grille-kpi">' +
+    kpi('CA facturé HT', fcfa(k.ca_ht), k.nb_factures + ' factures émises') +
+    kpi('CA facturé TTC', fcfa(k.ca_ttc), 'dont TVA ' + fcfa(k.tva)) +
+    kpi('Encaissé TTC', fcfa(k.encaisse), pct(k.taux) + ' encaissé · objectif ' + pct(k.objectif), k.taux < k.objectif ? 'o' : '') +
+    kpi('Reste à recouvrer', fcfa(k.reste), k.nb_ouvertes + ' factures ouvertes (toutes années)') +
+    kpi('Dont en retard', fcfa(k.retard), k.nb_retard + ' factures en retard', 'r') +
+    kpi('Retenues de garantie', fcfa(k.retenues), 'à libérer') + '</div>';
+  var maxT = Math.max.apply(null, f.tranches.map(function (t) { return t.montant; }).concat([1]));
+  var barres = f.tranches.map(function (t, i) {
+    return '<div class="ln"><span>' + esc(t.libelle) + '</span><div class="piste"><div class="rempli ' + (i > 0 ? 'r' : '') + '" style="width:' + (100 * t.montant / maxT).toFixed(1) + '%"></div></div><span class="val">' + fcfa(t.montant) + ' <span class="compte">(' + t.nombre + ')</span></span></div>';
+  }).join('');
+  var maxA = Math.max.apply(null, f.par_annee.map(function (a) { return a.ca_ht; }).concat([1]));
+  var cols = f.par_annee.slice(-7).map(function (a) {
+    return '<div class="c"><b>' + NF.format(Math.round(a.ca_ht / 1e6)) + ' M</b><i style="height:' + Math.max(2, 100 * a.ca_ht / maxA).toFixed(1) + '%"></i>' + a.annee + '</div>';
+  }).join('');
+  h += '<div class="deux"><div class="bloc"><h3>Balance âgée des créances (reste TTC)</h3><div class="barres">' + barres + '</div></div>' +
+    '<div class="bloc"><h3>Chiffre d\'affaires HT par année</h3><div class="cols">' + cols + '</div></div></div>';
+  var cl = f.clients.map(function (c) {
+    return '<tr><td>' + esc(c.client) + '</td><td class="n">' + c.nombre + '</td><td class="n"><b>' + fcfa(c.reste) + '</b></td><td class="n" style="color:var(--rouge)">' + fcfa(c.retard) + '</td><td class="n">' + (c.retard_max ? c.retard_max + ' j' : '') + '</td><td class="n">' + pct(c.part) + '</td></tr>';
+  }).join('');
+  var rt = f.retards.map(function (r) {
+    var cls = r.retard > 90 ? 's-retard' : r.retard > 30 ? 's-proche' : 's-attente';
+    return '<tr data-fac="' + esc(r.id) + '"><td>' + esc(r.numero) + '</td><td>' + esc(r.client) + '</td><td>' + esc(r.chantier) + '</td><td>' + dfr(r.echeance) + '</td><td class="n"><span class="pastille ' + cls + '">' + r.retard + ' j</span></td><td class="n"><b>' + fcfa(r.reste_ttc) + '</b></td></tr>';
+  }).join('');
+  h += '<div class="bloc"><h3>Encours par client</h3><div class="tab-wrap" style="box-shadow:none"><table class="t"><thead><tr><th>Client</th><th class="n">Factures ouvertes</th><th class="n">Reste TTC</th><th class="n">Dont en retard</th><th class="n">Retard max</th><th class="n">Part</th></tr></thead><tbody>' + (cl || '<tr><td colspan="6" class="vide">Aucune créance ouverte</td></tr>') + '</tbody></table></div></div>';
+  h += '<div class="bloc"><h3>Factures en retard à relancer en priorité</h3><div class="tab-wrap" style="box-shadow:none"><table class="t"><thead><tr><th>N° facture</th><th>Client</th><th>Chantier</th><th>Échéance</th><th class="n">Retard</th><th class="n">Reste TTC</th></tr></thead><tbody>' + (rt || '<tr><td colspan="6" class="vide">Aucune facture en retard</td></tr>') + '</tbody></table></div></div>';
+  return h;
+}
+
+function blocParc(p) {
+  var k = p.kpi;
+  var h = '<div class="titre-sec"><h2>Parc engins & logistique</h2><div class="trait"></div></div>';
+  h += '<div class="grille-kpi">' +
+    kpi('Engins suivis', k.nb_engins, '') +
+    kpi('Relevés ce mois', k.releves_mois, '') +
+    kpi('Carburant ce mois', nb(k.carburant_mois) + ' L', '') +
+    kpi('Dépenses ce mois', fcfa(k.depenses_mois), 'relevés + journal des dépenses') +
+    kpi('Alertes', k.nb_alertes, 'contrôles, assurances, relevés', k.nb_alertes ? 'r' : '') + '</div>';
+  var maxM = Math.max.apply(null, p.mensuel.map(function (m) { return m.carburant; }).concat([1]));
+  var cols = p.mensuel.map(function (m) { return '<div class="c"><b>' + NF.format(m.carburant) + ' L</b><i style="height:' + Math.max(2, 100 * m.carburant / maxM).toFixed(1) + '%"></i>' + mFr(m.mois) + '</div>'; }).join('');
+  var al = p.alertes.map(function (a) {
+    var cls = a.jours < 0 ? 's-retard' : 's-proche';
+    var txt = a.objet === 'Aucun relevé depuis' ? 'depuis ' + (-a.jours) + ' j' : (a.jours < 0 ? 'dépassé de ' + (-a.jours) + ' j' : 'dans ' + a.jours + ' j');
+    return '<tr><td><b>' + esc(a.engin) + '</b> <span class="compte">' + esc(a.immatriculation) + '</span></td><td>' + esc(a.objet) + '</td><td>' + dfr(a.date) + '</td><td class="n"><span class="pastille ' + cls + '">' + txt + '</span></td></tr>';
+  }).join('');
+  h += '<div class="deux"><div class="bloc"><h3>Carburant consommé (6 derniers mois)</h3><div class="cols">' + cols + '</div></div>' +
+    '<div class="bloc"><h3>Alertes du parc</h3><div class="tab-wrap" style="box-shadow:none;max-height:240px"><table class="t"><tbody>' + (al || '<tr><td class="vide">Aucune alerte</td></tr>') + '</tbody></table></div></div></div>';
+  var en = p.engins.map(function (e) {
+    return '<tr><td><b>' + esc(e.code) + '</b></td><td>' + esc(e.type) + '</td><td>' + esc(e.immatriculation) + '</td><td>' + esc(e.conducteur) + '</td><td class="n">' + nb(e.compteur) + ' ' + esc(e.unite || '') + '</td><td>' + dfr(e.dernier) + '</td><td class="n">' + nb(e.carburant) + ' L</td><td class="n">' + fcfa(e.depenses) + '</td></tr>';
+  }).join('');
+  h += '<div class="bloc"><h3>Situation des engins (mois en cours)</h3><div class="tab-wrap" style="box-shadow:none"><table class="t"><thead><tr><th>Engin</th><th>Type</th><th>Immatriculation</th><th>Conducteur</th><th class="n">Compteur</th><th>Dernier relevé</th><th class="n">Carburant</th><th class="n">Dépenses</th></tr></thead><tbody>' + en + '</tbody></table></div></div>';
+  return h;
+}
+
+/* ---------- pilotage DG ---------- */
+function vuePilotage() {
+  var P = S.pil = S.pil || { onglet: 'finance', annee: String(new Date().getFullYear()), debut: auj().slice(0, 8) + '01', fin: auj(), filtre: 'tous' };
+  entete('Pilotage DG', 'Indicateurs de direction et contrôle de la qualité des données · situation au ' + dfr(auj()),
+    '<button class="btn btn-c" id="bPilMaj">Actualiser</button>');
+  $('#bPilMaj').onclick = vuePilotage;
+  chargement();
+  appel('pilotage', { annee: P.annee, debut: P.debut, fin: P.fin }).then(function (d) {
+    S.pilData = d; dessinerPilotage();
+  }).catch(erreurVue);
+}
+
+function compterCtrl(d) {
+  var e = 0, a = 0, pe = 0, pa = 0;
+  d.controles.forEach(function (c) { if (!c.nombre) return; if (c.gravite === 'e') { e += c.nombre; pe++; } else { a += c.nombre; pa++; } });
+  return { e: e, a: a, pe: pe, pa: pa };
+}
+
+function dessinerPilotage() {
+  var d = S.pilData, P = S.pil, f = d.finance, ind = f.indicateurs, n = compterCtrl(d);
+  var evo = ind.evolution == null ? 'pas de comparaison' : (ind.evolution >= 0 ? '+' : '') + pct(ind.evolution) + ' vs ' + (ind.annee_n - 1) + ' à la même date';
+  var h = '<div class="grille-kpi">' +
+    kpi('Taux de recouvrement ' + f.annee, pct(ind.realise), (ind.atteint ? '✔ Objectif atteint' : '⚠ Sous l\'objectif') + ' (' + pct(ind.objectif) + ')', ind.atteint ? '' : 'o') +
+    kpi('Créances > 90 jours', fcfa(ind.creances_90), ind.nb_90 + ' factures · ' + pct(ind.part_90) + ' de l\'encours', ind.creances_90 ? 'r' : '') +
+    kpi('CA HT ' + ind.annee_n + ' à date', fcfa(ind.ca_ytd), evo, ind.evolution != null && ind.evolution < 0 ? 'o' : '') +
+    '<div class="kpi ' + (n.e ? 'r' : n.a ? 'o' : '') + '" id="kCtrl" style="cursor:pointer"><div class="l">Anomalies dans les données</div><div class="v">' + (n.e + n.a) + '</div><div class="s">' +
+    (n.e ? n.e + ' erreur(s) à corriger' : 'aucune erreur') + (n.a ? ' · ' + n.a + ' point(s) à vérifier' : '') + ' ›</div></div></div>';
+  var tabs = [['finance', 'Finance & recouvrement'], ['parc', 'Parc & engins'], ['ctrl', 'Contrôle des données' + (n.e + n.a ? ' <span class="pastille ' + (n.e ? 's-retard' : 's-proche') + '">' + (n.e + n.a) + '</span>' : '')]];
+  h += '<div class="onglets">' + tabs.map(function (t) { return '<button data-o="' + t[0] + '" class="' + (P.onglet === t[0] ? 'actif' : '') + '">' + t[1] + '</button>'; }).join('') + '</div><div id="pilCorps"></div>';
+  $('#contenu').innerHTML = h;
+  $$('.onglets button').forEach(function (b) { b.onclick = function () { P.onglet = b.getAttribute('data-o'); dessinerPilotage(); }; });
+  $('#kCtrl').onclick = function () { P.onglet = 'ctrl'; dessinerPilotage(); };
+  if (P.onglet === 'parc') pilParc(d); else if (P.onglet === 'ctrl') pilCtrl(d); else pilFinance(d);
+}
+
+function pilFinance(d) {
+  var f = d.finance, k = f.kpi, ind = f.indicateurs, P = S.pil;
+  var opts = '<option value="toutes">Toutes</option>' + f.annees_disponibles.slice().reverse().map(function (y) { return '<option ' + (String(y) === String(f.annee) ? 'selected' : '') + '>' + y + '</option>'; }).join('');
+  var h = '<div class="titre-sec"><h2>Facturation & recouvrement</h2><div class="trait"></div><label class="compte">Année <select id="pilAnnee" class="champ-mini">' + opts + '</select></label></div>';
+  h += '<div class="grille-kpi">' +
+    kpi('CA facturé HT', fcfa(k.ca_ht), k.nb_factures + ' factures émises') +
+    kpi('CA facturé TTC', fcfa(k.ca_ttc), 'dont TVA ' + fcfa(k.tva)) +
+    kpi('Encaissé TTC', fcfa(k.encaisse), pct(k.taux) + ' encaissé', k.taux < k.objectif ? 'o' : '') +
+    kpi('Reste à recouvrer', fcfa(k.reste), k.nb_ouvertes + ' factures ouvertes') +
+    kpi('Dont en retard', fcfa(k.retard), k.nb_retard + ' factures en retard', 'r') +
+    kpi('Retenues de garantie', fcfa(k.retenues), 'à libérer') + '</div>';
+  // balance âgée détaillée
+  var tot = f.tranches.reduce(function (a, t) { return a + t.montant; }, 0) || 1;
+  var bal = f.tranches.map(function (t, i) {
+    return '<tr><td>' + esc(t.libelle) + '</td><td class="n">' + t.nombre + '</td><td class="n"><b>' + fcfa(t.montant) + '</b></td><td class="n">' + pct(t.montant / tot) + '</td><td style="width:40%"><div class="piste-mini"><div class="' + (i ? 'r' : '') + '" style="width:' + (100 * t.montant / tot).toFixed(1) + '%"></div></div></td></tr>';
+  }).join('');
+  var obj = '<div class="obj"><div><span class="compte">Objectif</span><b>' + pct(ind.objectif) + '</b></div><div><span class="compte">Réalisé (' + esc(f.annee) + ')</span><b>' + pct(ind.realise) + '</b></div>' +
+    '<div><span class="compte">Verdict</span><b class="' + (ind.atteint ? 'n-ok' : 'n-e') + '">' + (ind.atteint ? '✔ Atteint' : '⚠ Sous l\'objectif') + '</b></div></div>' +
+    '<div class="piste-mini" style="height:12px;margin-top:10px;position:relative"><div style="width:' + Math.min(100, ind.realise * 100).toFixed(1) + '%"></div><span class="repere" style="left:' + (ind.objectif * 100).toFixed(1) + '%"></span></div>' +
+    '<p class="compte" style="margin:12px 0 0">Créances de plus de 90 jours : <b>' + fcfa(ind.creances_90) + '</b> (' + ind.nb_90 + ' factures, ' + pct(ind.part_90) + ' de l\'encours).<br>' +
+    'CA HT ' + ind.annee_n + ' au ' + dfr(d.date) + ' : <b>' + fcfa(ind.ca_ytd) + '</b> contre ' + fcfa(ind.ca_ytd_prec) + ' en ' + (ind.annee_n - 1) + ' à la même date' + (ind.evolution != null ? ' (<b class="' + (ind.evolution < 0 ? 'n-e' : 'n-ok') + '">' + (ind.evolution >= 0 ? '+' : '') + pct(ind.evolution) + '</b>)' : '') + '.</p>';
+  h += '<div class="deux"><div class="bloc"><h3>Balance âgée des créances (reste TTC)</h3><div class="tab-wrap" style="box-shadow:none"><table class="t tl"><thead><tr><th>Tranche</th><th class="n">Factures</th><th class="n">Montant</th><th class="n">Poids</th><th></th></tr></thead><tbody>' + bal +
+    '</tbody><tfoot><tr><td>Total</td><td class="n">' + f.tranches.reduce(function (a, t) { return a + t.nombre; }, 0) + '</td><td class="n">' + fcfa(tot) + '</td><td class="n">100 %</td><td></td></tr></tfoot></table></div></div>' +
+    '<div class="bloc"><h3>Objectif de recouvrement</h3>' + obj + '</div></div>';
+  // activité par année
+  var act = f.activite.slice().reverse().map(function (a) {
+    return '<tr><td><b>' + a.annee + '</b></td><td class="n">' + a.nombre + '</td><td class="n">' + fcfa(a.ca_ht) + '</td><td class="n">' + fcfa(a.ca_ttc) + '</td><td class="n">' + fcfa(a.encaisse) + '</td><td class="n"><span class="' + (a.taux >= ind.objectif ? 'n-ok' : 'n-e') + '">' + pct(a.taux) + '</span></td></tr>';
+  }).join('');
+  var sAct = f.activite.reduce(function (o, a) { o.n += a.nombre; o.ht += a.ca_ht; o.ttc += a.ca_ttc; o.enc += a.encaisse; return o; }, { n: 0, ht: 0, ttc: 0, enc: 0 });
+  h += '<div class="bloc"><h3>Activité par année</h3><div class="tab-wrap" style="box-shadow:none"><table class="t tl"><thead><tr><th>Année</th><th class="n">Factures</th><th class="n">CA HT</th><th class="n">CA TTC</th><th class="n">Encaissé TTC</th><th class="n">Taux d\'encaissement</th></tr></thead><tbody>' + act +
+    '</tbody><tfoot><tr><td>Total</td><td class="n">' + sAct.n + '</td><td class="n">' + fcfa(sAct.ht) + '</td><td class="n">' + fcfa(sAct.ttc) + '</td><td class="n">' + fcfa(sAct.enc) + '</td><td class="n">' + pct(sAct.ttc ? sAct.enc / sAct.ttc : 0) + '</td></tr></tfoot></table></div></div>';
+  // encours par client
+  var cl = f.clients.map(function (c) {
+    return '<tr class="tl"><td>' + esc(c.client) + '</td><td class="n">' + c.nombre + '</td><td class="n"><b>' + fcfa(c.reste) + '</b></td><td class="n" style="color:var(--rouge)">' + fcfa(c.retard) + '</td><td class="n">' + (c.retard_max ? c.retard_max + ' j' : '') + '</td><td class="n">' + pct(c.part) + '</td><td>' + dfr(c.derniere) + '</td></tr>';
+  }).join('');
+  h += '<div class="bloc"><h3>Encours par client (du plus gros au plus petit)</h3><div class="tab-wrap" style="box-shadow:none"><table class="t tl"><thead><tr><th>Client</th><th class="n">Factures ouvertes</th><th class="n">Reste TTC</th><th class="n">Dont en retard</th><th class="n">Retard max</th><th class="n">Part encours</th><th>Dernière facture</th></tr></thead><tbody>' +
+    (cl || '<tr><td colspan="7" class="vide">Aucune créance ouverte</td></tr>') + '</tbody><tfoot><tr><td>Total</td><td class="n">' + k.nb_ouvertes + '</td><td class="n">' + fcfa(k.reste) + '</td><td class="n">' + fcfa(k.retard) + '</td><td></td><td class="n">100 %</td><td></td></tr></tfoot></table></div></div>';
+  // top retards
+  var rt = f.retards.map(function (r) {
+    var cls = r.priorite === 'Critique' ? 's-retard' : r.priorite === 'Élevée' ? 's-proche' : 's-attente';
+    return '<tr data-fac="' + esc(r.id) + '"><td>' + esc(r.numero) + '</td><td>' + dfr(r.date_emission) + '</td><td>' + esc(r.client) + '</td><td>' + esc(r.chantier) + '</td><td>' + dfr(r.echeance) + '</td><td class="n">' + r.retard + ' j</td><td class="n"><b>' + fcfa(r.reste_ttc) + '</b></td><td><span class="pastille ' + cls + '">' + r.priorite + '</span></td></tr>';
+  }).join('');
+  h += '<div class="bloc"><h3>Top 15 des factures en retard — à relancer en priorité</h3><div class="tab-wrap" style="box-shadow:none"><table class="t"><thead><tr><th>N° facture</th><th>Émise le</th><th>Client</th><th>Chantier</th><th>Échéance</th><th class="n">Retard</th><th class="n">Reste TTC</th><th>Priorité</th></tr></thead><tbody>' +
+    (rt || '<tr><td colspan="8" class="vide">Aucune facture en retard</td></tr>') + '</tbody></table></div><p class="compte" style="margin:10px 0 0">Total en retard : ' + k.nb_retard + ' facture(s) pour ' + fcfa(k.retard) + '. Cliquez sur une ligne pour ouvrir la facture.</p></div>';
+  $('#pilCorps').innerHTML = h;
+  $('#pilAnnee').onchange = function () { P.annee = this.value; vuePilotage(); };
+  $$('[data-fac]', $('#pilCorps')).forEach(function (tr) { tr.onclick = function () { ouvrirParId('factures', tr.getAttribute('data-fac')); }; });
+}
+
+function pastEch(s) {
+  if (!s || s.etat === 'nd') return '<span class="compte">—</span>';
+  var cls = s.etat === 'retard' ? 's-retard' : s.etat === 'proche' ? 's-proche' : 's-payee';
+  var t = s.etat === 'retard' ? 'Expiré' : s.etat === 'proche' ? s.jours + ' j' : 'OK';
+  return '<span class="pastille ' + cls + '" title="' + dfr(s.date) + '">' + t + '</span>';
+}
+
+function pilParc(d) {
+  var p = d.parc, t = p.totaux, P = S.pil;
+  var h = '<div class="titre-sec"><h2>Récap du parc engins</h2><div class="trait"></div><span class="compte">Du</span> <input type="date" id="pilDeb" class="champ-mini" value="' + esc(d.periode.debut) + '"> <span class="compte">au</span> <input type="date" id="pilFin" class="champ-mini" value="' + esc(d.periode.fin) + '"> <button class="btn btn-c" id="pilPer" style="padding:5px 10px">Appliquer</button></div>';
+  h += '<div class="grille-kpi">' + kpi('Distance véhicules', nb(t.km) + ' km', 'écart entre relevés successifs') + kpi('Heures engins', nb(t.heures) + ' h', '') +
+    kpi('Carburant', nb(t.carburant) + ' L', '') + kpi('Dépenses', fcfa(t.depenses), 'relevés + journal des dépenses') +
+    kpi('Saisies', t.saisies, 'relevés sur la période') + kpi('Anomalies de relevés', t.anomalies, 'voir Contrôle des données', t.anomalies ? 'o' : '') + '</div>';
+  var en = p.engins.map(function (e) {
+    var u = e.unite, conso = e.conso === '' ? '' : nb(Math.round(e.conso * 100) / 100) + (u === 'h' ? ' L/h' : ' L/100');
+    var ve = e.vidange || {}, vid = !ve.statut || ve.statut === 'nd' ? '<span class="compte" title="Renseignez la date et le compteur de la dernière vidange">Non renseignée</span>' : '<span class="pastille ' + (ve.statut === 'retard' ? 's-retard' : ve.statut === 'proche' ? 's-proche' : 's-payee') + '" title="' + esc(ve.texte + ' · intervalle ' + ve.intervalle + ' ' + ve.unite + ' (' + ve.source + ') ou ' + ve.mois + ' mois') + '">' + esc(ve.statut === 'retard' ? 'À faire' : ve.reste !== '' ? (ve.statut === 'proche' ? 'Bientôt · ' : '') + nb(ve.reste) + ' ' + ve.unite : 'le ' + dfr(ve.limite)) + '</span>';
+    return '<tr data-eng="' + esc(e.id) + '"><td><b>' + esc(e.code) + '</b><div class="compte">' + esc(e.immatriculation || '') + '</div></td><td>' + esc(e.type || '') + '</td><td class="n">' + nb(e.debut) + '</td><td class="n">' + nb(e.fin) + '</td><td class="n"><b>' + nb(e.parcouru) + ' ' + u + '</b></td><td class="n">' + e.jours_actifs + '</td><td class="n">' + nb(e.carburant) + ' L</td>' +
+      '<td class="n"><span class="' + (e.conso_alerte ? 'n-e' : '') + '" title="' + (e.conso_ref !== '' ? 'Référence : ' + e.conso_ref : '') + '">' + conso + (e.conso_alerte ? ' ⚠' : '') + '</span></td><td class="n">' + fcfa(e.depenses) + '</td><td class="n">' + e.saisies + '</td><td class="n">' + (e.anomalies ? '<span class="n-e">' + e.anomalies + '</span>' : '0') + '</td>' +
+      '<td>' + vid + '</td><td>' + pastEch(e.ct) + '</td><td>' + pastEch(e.assurance) + '</td><td>' + pastEch(e.patente) + '</td><td>' + pastEch(e.station) + '</td></tr>';
+  }).join('');
+  h += '<div class="bloc"><h3>1. Synthèse par engin</h3><div class="tab-wrap" style="box-shadow:none"><table class="t"><thead><tr><th>Engin</th><th>Type</th><th class="n">Compteur début</th><th class="n">Compteur fin</th><th class="n">Parcouru</th><th class="n">Jours actifs</th><th class="n">Carburant</th><th class="n">Conso</th><th class="n">Dépenses</th><th class="n">Saisies</th><th class="n">Anomalies</th><th>Vidange (reste)</th><th>Visite tech.</th><th>Assurance</th><th>Patente</th><th>Stationnement</th></tr></thead><tbody>' + en +
+    '</tbody><tfoot><tr><td colspan="4">Total</td><td class="n">' + nb(t.km) + ' km · ' + nb(t.heures) + ' h</td><td></td><td class="n">' + nb(t.carburant) + ' L</td><td></td><td class="n">' + fcfa(t.depenses) + '</td><td class="n">' + t.saisies + '</td><td class="n">' + t.anomalies + '</td><td colspan="5"></td></tr></tfoot></table></div>' +
+    '<p class="compte" style="margin:10px 0 0">Parcouru = somme des écarts entre relevés successifs, hors relevés en anomalie. Vidange : due au premier terme atteint, kilométrage (selon l\'huile) ou date (tous les N mois) — survolez la pastille pour le détail. Conso en L/100 km (véhicules) ou L/h (engins) ; ⚠ = au-dessus de la consommation de référence de la fiche engin. Cliquez sur un engin pour ouvrir sa fiche.</p></div>';
+  var ch = p.chantiers.map(function (c) {
+    return '<tr class="tl"><td>' + esc(c.chantier) + '</td><td class="n">' + nb(c.km) + '</td><td class="n">' + nb(c.heures) + '</td><td class="n">' + nb(c.carburant) + ' L</td><td class="n">' + fcfa(c.depenses) + '</td><td>' + esc(c.engins) + '</td></tr>';
+  }).join('');
+  h += '<div class="bloc"><h3>2. Activité par chantier</h3><div class="tab-wrap" style="box-shadow:none;max-height:420px"><table class="t"><thead><tr><th>Chantier</th><th class="n">Km</th><th class="n">Heures</th><th class="n">Carburant</th><th class="n">Dépenses</th><th>Engins</th></tr></thead><tbody>' +
+    (ch || '<tr><td colspan="6" class="vide">Aucun relevé sur la période</td></tr>') + '</tbody></table></div></div>';
+  $('#pilCorps').innerHTML = h;
+  $('#pilPer').onclick = function () { P.debut = $('#pilDeb').value || P.debut; P.fin = $('#pilFin').value || P.fin; vuePilotage(); };
+  $$('[data-eng]', $('#pilCorps')).forEach(function (tr) { tr.onclick = function () { ouvrirParId('engins', tr.getAttribute('data-eng')); }; });
+}
+
+function pilCtrl(d) {
+  var P = S.pil, doms = ['tous', 'Factures', 'Relevés', 'Dépenses', 'Engins'];
+  var liste = d.controles.filter(function (c) { return P.filtre === 'tous' || c.domaine === P.filtre; });
+  var nbDom = function (x) { return d.controles.filter(function (c) { return x === 'tous' || c.domaine === x; }).reduce(function (a, c) { return a + c.nombre; }, 0); };
+  var h = '<div class="titre-sec"><h2>Contrôle qualité des données</h2><div class="trait"></div><button class="btn btn-c" id="bCtrlCsv" style="padding:5px 10px">Exporter la liste (CSV)</button></div>';
+  h += '<div class="onglets petits">' + doms.map(function (x) { return '<button data-f="' + x + '" class="' + (P.filtre === x ? 'actif' : '') + '">' + (x === 'tous' ? 'Tout' : x) + ' (' + nbDom(x) + ')</button>'; }).join('') + '</div>';
+  h += '<div class="bloc" style="padding:6px 14px">' + liste.map(function (c, i) {
+    var st = !c.nombre ? '<span class="n-ok">✔</span>' : c.gravite === 'e' ? '<span class="n-e">✖</span>' : '<span class="n-a">⚠</span>';
+    var items = c.items.map(function (it) { return '<div class="ctrl-i" data-t="' + c.table + '" data-id="' + esc(it.id) + '"><span><b>' + esc(it.ref) + '</b> <span class="compte">' + esc(it.detail) + '</span></span><span class="compte">Ouvrir ›</span></div>'; }).join('');
+    if (c.nombre > c.items.length) items += '<div class="compte" style="padding:6px 8px">… et ' + (c.nombre - c.items.length) + ' autre(s)</div>';
+    return '<div class="ctrl" data-i="' + i + '"><div class="ctrl-t">' + st + '<div><b>' + esc(c.point) + '</b> <span class="compte">· ' + esc(c.domaine) + '</span><div class="act">' + (c.nombre ? esc(c.action) : 'Aucune anomalie') + '</div></div>' +
+      '<div class="n ' + (c.nombre ? (c.gravite === 'e' ? 'n-e' : 'n-a') : 'n-ok') + '" style="text-align:right">' + c.nombre + (c.nombre ? ' ▾' : '') + '</div></div>' + (c.nombre ? '<div class="ctrl-d">' + items + '</div>' : '') + '</div>';
+  }).join('') + '</div><p class="compte">✖ erreur à corriger · ⚠ point à vérifier · ✔ contrôle conforme. Cliquez sur un contrôle pour voir les lignes concernées, puis sur une ligne pour la corriger directement.</p>';
+  $('#pilCorps').innerHTML = h;
+  $$('.onglets.petits button').forEach(function (b) { b.onclick = function () { P.filtre = b.getAttribute('data-f'); pilCtrl(d); }; });
+  $$('.ctrl-t').forEach(function (t) { t.onclick = function () { t.parentNode.classList.toggle('ouvert'); }; });
+  $$('.ctrl-i').forEach(function (x) { x.onclick = function () { ouvrirParId(x.getAttribute('data-t'), x.getAttribute('data-id')); }; });
+  $('#bCtrlCsv').onclick = function () {
+    var lignes = [['Domaine', 'Contrôle', 'Gravité', 'Référence', 'Détail', 'Action conseillée']];
+    d.controles.forEach(function (c) { c.items.forEach(function (it) { lignes.push([c.domaine, c.point, c.gravite === 'e' ? 'Erreur' : 'À vérifier', it.ref, it.detail, c.action]); }); });
+    var csv = '﻿' + lignes.map(function (l) { return l.map(function (v) { return '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"'; }).join(';'); }).join('\r\n');
+    var a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+    a.download = 'RAIA_anomalies_' + auj() + '.csv'; document.body.appendChild(a); a.click(); a.remove();
+  };
+}
+
+/* ---------- tables génériques ---------- */
+function schema(t) { return S.ctx.tables[t]; }
+function colonnesVisibles(t) { return schema(t).champs.filter(function (c) { return c.liste_col; }); }
+function estNum(c) { return c.t === 'number' || c.t === 'money'; }
+function affiche(c, v) {
+  if (v === '' || v == null) return '';
+  if (c.n === 'prochaine_vidange') { var cl = /^À faire/.test(v) ? 's-retard' : /^À prévoir/.test(v) ? 's-proche' : /non renseignée/.test(v) ? 's-attente' : 's-payee'; return '<span class="pastille ' + cl + '" title="' + esc(v) + '">' + esc(v.replace(/^À (faire|prévoir) : /, '')) + '</span>'; }
+  if (c.n === 'statut') { var m = { 'En retard': 's-retard', 'Échéance proche': 's-proche', 'Payée': 's-payee', 'Annulée': 's-annulee', 'En attente': 's-attente' }; return '<span class="pastille ' + (m[v] || '') + '">' + esc(v) + '</span>'; }
+  if (c.t === 'money') return fcfa(v);
+  if (c.t === 'number') return nb(v);
+  if (c.t === 'date') return dfr(v);
+  if (c.t === 'url') return '<a href="' + esc(v) + '" target="_blank" onclick="event.stopPropagation()">Ouvrir</a>';
+  return esc(v);
+}
+
+function vueTable(t) {
+  var sc = schema(t), d = sc.droits;
+  var info = d.creer && !d.modifier ? 'Vous pouvez consulter et ajouter.' : (!d.creer ? 'Consultation seule.' : '');
+  entete(sc.titre, info, d.creer ? '<button class="btn btn-p" id="bAjout">+ Ajouter</button>' : '');
+  if (d.creer) $('#bAjout').onclick = function () { ouvrirFormulaire(t, null); };
+  chargement();
+  appel('lister', { table: t }).then(function (r) {
+    S.cache[t] = r.lignes;
+    S.filtres[t] = S.filtres[t] || { q: '', tri: sc.tri, desc: sc.triDesc, page: 0, f: {} };
+    dessinerTable(t);
+  }).catch(erreurVue);
+}
+
+function filtresSpecifiques(t) {
+  if (t === 'factures') return [{ n: 'statut', l: 'Tous les statuts', v: ['En retard', 'Échéance proche', 'En attente', 'Payée', 'Annulée'] }, { n: 'chantier', l: 'Tous les chantiers' }, { n: 'annee', l: 'Toutes les années' }];
+  if (t === 'releves' || t === 'depenses') return [{ n: 'engin', l: 'Tous les engins' }, { n: 'mois', l: 'Tous les mois' }];
+  if (t === 'engins') return [{ n: 'type', l: 'Tous les types' }];
+  return [];
+}
+
+function lignesFiltrees(t) {
+  var F = S.filtres[t], q = F.q.toLowerCase().trim(), L = S.cache[t] || [];
+  var res = L.filter(function (l) {
+    for (var k in F.f) {
+      var v = F.f[k]; if (!v) continue;
+      if (k === 'annee') { if (String(l.date_emission || '').slice(0, 4) !== v) return false; }
+      else if (k === 'mois') { if (String(l.date || '').slice(0, 7) !== v) return false; }
+      else if (String(l[k] || '') !== v) return false;
+    }
+    if (!q) return true;
+    for (var c in l) if (String(l[c]).toLowerCase().indexOf(q) >= 0) return true;
+    return false;
+  });
+  var tri = F.tri, desc = F.desc ? -1 : 1, champ = schema(t).champs.filter(function (c) { return c.n === tri; })[0];
+  res.sort(function (a, b) {
+    var x = a[tri], y = b[tri];
+    if (champ && estNum(champ)) { x = x === '' ? -Infinity : Number(x); y = y === '' ? -Infinity : Number(y); }
+    else { x = String(x || ''); y = String(y || ''); }
+    return x < y ? -desc : x > y ? desc : 0;
+  });
+  if (F.grp) {
+    var rang = {}; res.forEach(function (l, i) { rang[l.id] = i; });
+    res.sort(function (a, b) {
+      var ca = nomGroupe(a), cb = nomGroupe(b);
+      if (ca !== cb) return ca === 'Sans chantier' ? 1 : cb === 'Sans chantier' ? -1 : ca.localeCompare(cb, 'fr');
+      return rang[a.id] - rang[b.id];
+    });
+  }
+  return res;
+}
+
+function nomGroupe(l) { var c = String(l.chantier || '').trim(); return c || 'Sans chantier'; 
+}
+
+function dessinerTable(t) {
+  var sc = schema(t), F = S.filtres[t], cols = colonnesVisibles(t), L = S.cache[t] || [];
+  var fs = filtresSpecifiques(t).map(function (f) {
+    var vals = f.v;
+    if (!vals) {
+      var set = {};
+      L.forEach(function (l) {
+        var v = f.n === 'annee' ? String(l.date_emission || '').slice(0, 4) : f.n === 'mois' ? String(l.date || '').slice(0, 7) : l[f.n];
+        if (v) set[v] = 1;
+      });
+      vals = Object.keys(set).sort(function (x, y) { return String(x).localeCompare(String(y), 'fr'); }); if (f.n === 'annee' || f.n === 'mois') vals.reverse();
+    }
+    return '<select data-f="' + f.n + '"><option value="">' + esc(f.l) + '</option>' + vals.map(function (v) { return '<option ' + (F.f[f.n] === v ? 'selected' : '') + ' value="' + esc(v) + '">' + esc(f.n === 'mois' ? mFr(v) : v) + '</option>'; }).join('') + '</select>';
+  }).join('');
+  var res = lignesFiltrees(t), parPage = F.grp ? 100000 : 50, nbPages = Math.max(1, Math.ceil(res.length / parPage));
+  if (F.page >= nbPages) F.page = nbPages - 1;
+  var page = res.slice(F.page * parPage, (F.page + 1) * parPage);
+  var tete = cols.map(function (c) { return '<th data-tri="' + c.n + '" class="' + (estNum(c) ? 'n' : '') + '">' + esc(c.l) + (F.tri === c.n ? (F.desc ? ' ▼' : ' ▲') : '') + '</th>'; }).join('');
+  var ligneTr = function (l) { return '<tr data-id="' + esc(l.id) + '">' + cols.map(function (c) { return '<td class="' + (estNum(c) ? 'n' : '') + '">' + affiche(c, l[c.n]) + '</td>'; }).join('') + '</tr>'; };
+  var corps;
+  if (F.grp) {
+    var grp = {}, ordre = [];
+    page.forEach(function (l) { var g = nomGroupe(l); if (!grp[g]) { grp[g] = []; ordre.push(g); } grp[g].push(l); });
+    F.ferme = F.ferme || {};
+    corps = ordre.map(function (g) {
+      var ls = grp[g], ferme = F.ferme[g];
+      var tete = cols.map(function (c, i) {
+        if (c.t === 'money') return '<td class="n">' + fcfa(ls.reduce(function (a, l) { return a + (Number(l[c.n]) || 0); }, 0)) + '</td>';
+        return '<td>' + (i === 0 ? (ferme ? '▸ ' : '▾ ') + esc(g) + ' (' + ls.length + ')' : '') + '</td>';
+      }).join('');
+      return '<tr class="grp" data-g="' + esc(g) + '">' + tete + '</tr>' + (ferme ? '' : ls.map(ligneTr).join(''));
+    }).join('');
+  } else corps = page.map(ligneTr).join('');
+  var totaux = cols.map(function (c, i) {
+    if (c.t === 'money' || c.n === 'carburant' || c.n === 'litres') { var s = res.reduce(function (a, l) { return a + (Number(l[c.n]) || 0); }, 0); return '<td class="n">' + (c.t === 'money' ? fcfa(s) : nb(s)) + '</td>'; }
+    return '<td>' + (i === 0 ? 'Total (' + res.length + ')' : '') + '</td>';
+  }).join('');
+  $('#contenu').innerHTML =
+    '<div class="outils"><input type="search" id="q" placeholder="Rechercher…" value="' + esc(F.q) + '">' + fs +
+    (t === 'factures' ? '<button class="btn btn-c btn-s' + (F.grp ? ' btn-on' : '') + '" id="bGrp">Regrouper par chantier</button>' : '') +
+    '<span class="esp"></span><span class="compte">' + res.length + ' / ' + L.length + ' lignes</span>' +
+    '<button class="btn btn-c btn-s" id="bCsv">Exporter (Excel)</button></div>' +
+    '<div class="tab-wrap"><table class="t"><thead><tr>' + tete + '</tr></thead><tbody>' + (corps || '<tr><td colspan="' + cols.length + '" class="vide">Aucune donnée</td></tr>') + '</tbody>' +
+    (res.length ? '<tfoot><tr>' + totaux + '</tr></tfoot>' : '') + '</table>' +
+    '<div class="pagin"><button class="btn btn-c btn-s" id="pPrec" ' + (F.page ? '' : 'disabled') + '>‹</button> Page ' + (F.page + 1) + ' / ' + nbPages + ' <button class="btn btn-c btn-s" id="pSuiv" ' + (F.page < nbPages - 1 ? '' : 'disabled') + '>›</button></div></div>';
+  var q = $('#q'); q.oninput = function () { F.q = q.value; F.page = 0; var p = q.selectionStart; dessinerTable(t); var nq = $('#q'); nq.focus(); nq.setSelectionRange(p, p); };
+  $$('[data-f]').forEach(function (s) { s.onchange = function () { F.f[s.getAttribute('data-f')] = s.value; F.page = 0; dessinerTable(t); }; });
+  $$('th[data-tri]').forEach(function (th) { th.onclick = function () { var n = th.getAttribute('data-tri'); if (F.tri === n) F.desc = !F.desc; else { F.tri = n; F.desc = false; } dessinerTable(t); }; });
+  $$('tbody tr[data-id]').forEach(function (tr) { tr.onclick = function () { ouvrirParId(t, tr.getAttribute('data-id')); }; });
+  if ($('#bGrp')) $('#bGrp').onclick = function () { F.grp = !F.grp; F.page = 0; dessinerTable(t); };
+  $$('tr.grp').forEach(function (tr) { tr.onclick = function () { var g = tr.getAttribute('data-g'); F.ferme[g] = !F.ferme[g]; dessinerTable(t); }; });
+  $('#pPrec').onclick = function () { F.page--; dessinerTable(t); };
+  $('#pSuiv').onclick = function () { F.page++; dessinerTable(t); };
+  $('#bCsv').onclick = function () { exporterCsv(t, res); };
+}
+
+function exporterCsv(t, lignes) {
+  var ch = schema(t).champs.filter(function (c) { return c.t !== 'id'; });
+  var cel = function (v) { v = v == null ? '' : String(v); return /[";\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; };
+  var csv = '﻿' + ch.map(function (c) { return cel(c.l); }).join(';') + '\n' +
+    lignes.map(function (l) { return ch.map(function (c) { var v = l[c.n]; if (c.t === 'date') v = dfr(v); else if (estNum(c) && v !== '' && v != null) v = String(v).replace('.', ','); return cel(v); }).join(';'); }).join('\n');
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+  a.download = 'RAIA_' + t + '_' + auj() + '.csv'; document.body.appendChild(a); a.click(); a.remove();
+}
+
+function ouvrirParId(t, id) {
+  var go = function () { var l = (S.cache[t] || []).filter(function (x) { return x.id === id; })[0]; if (l) ouvrirFormulaire(t, l); };
+  if (S.cache[t]) return go();
+  appel('lister', { table: t }).then(function (r) { S.cache[t] = r.lignes; go(); }).catch(function (e) { toast(e.message, true); });
+}
+
+/* ---------- formulaire ---------- */
+function optionsListe(c) {
+  if (Array.isArray(c.liste)) return c.liste;
+  return (S.ctx.listes[c.liste] || []);
+}
+
+function inputChamp(c, v, lecture) {
+  var dis = (lecture || c.ro) ? ' disabled' : '';
+  var id = 'f_' + c.n, val = v == null ? '' : v;
+  var large = c.t === 'textarea' || c.t === 'url' ? ' large' : '';
+  var h = '<div class="champ' + large + '"><label for="' + id + '" class="' + (c.req && !c.ro ? 'req' : '') + '">' + esc(c.l) + '</label>';
+  if (c.t === 'textarea') h += '<textarea id="' + id + '" rows="3"' + dis + '>' + esc(val) + '</textarea>';
+  else if (c.t === 'select' && !c.libre) {
+    var opts = optionsListe(c); if (val && opts.indexOf(String(val)) < 0) opts = [String(val)].concat(opts);
+    h += '<select id="' + id + '"' + dis + '><option value=""></option>' + opts.map(function (o) { return '<option ' + (String(o) === String(val) ? 'selected' : '') + '>' + esc(o) + '</option>'; }).join('') + '</select>';
+  }
+  else if (c.t === 'select') h += '<input id="' + id + '" list="dl_' + c.n + '" value="' + esc(val) + '"' + dis + '><datalist id="dl_' + c.n + '">' + optionsListe(c).map(function (o) { return '<option value="' + esc(o) + '">'; }).join('') + '</datalist>';
+  else if (c.t === 'date' && c.ro) h += '<input id="' + id + '" value="' + esc(dfr(val)) + '" disabled>';
+  else if (c.t === 'date') h += '<input id="' + id + '" type="date" value="' + esc(val) + '"' + dis + '>';
+  else if (c.t === 'number' || c.t === 'money') {
+    if (c.ro) h += '<input id="' + id + '" value="' + esc(c.t === 'money' ? fcfa(val) : nb(val)) + '" disabled>';
+    else h += '<input id="' + id + '" type="number" step="any" inputmode="decimal" value="' + esc(val) + '"' + dis + '>';
+  }
+  else if (c.t === 'url') h += '<div class="ligne-url"><input id="' + id + '" type="url" placeholder="Lien Google Drive" value="' + esc(val) + '"' + dis + '>' +
+    (val ? '<a class="btn btn-c btn-s" href="' + esc(val) + '" target="_blank">Ouvrir</a>' : '') +
+    (dis ? '' : '<label class="btn btn-c btn-s">Joindre un fichier<input type="file" class="cache" data-up="' + c.n + '"></label>') + '</div>';
+  else h += '<input id="' + id + '" value="' + esc(val) + '"' + dis + '>';
+  if (c.aide && !dis) h += '<div class="aide">' + esc(c.aide) + '</div>';
+  return h + '</div>';
+}
+
+function ouvrirFormulaire(t, ligne) {
+  var sc = schema(t), d = sc.droits, nouveau = !ligne;
+  var lecture = !nouveau && !d.modifier;
+  var l = ligne || {};
+  if (nouveau) {
+    sc.champs.forEach(function (c) { if (c.t === 'date' && (c.n === 'date' || c.n === 'date_emission')) l[c.n] = auj(); });
+    if (t === 'factures') { l.etat = 'Impayé'; l.delai = 30; }
+    if (t === 'engins') l.unite = 'km';
+    var F = S.filtres[t]; if (F && F.f && F.f.engin && (t === 'releves' || t === 'depenses')) l.engin = F.f.engin;
+  }
+  var champs = sc.champs.filter(function (c) { return c.t !== 'id' && !(nouveau && c.ro); });
+  var v = document.createElement('div'); v.className = 'voile';
+  v.innerHTML = '<div class="modale"><div class="tete"><h3>' + (nouveau ? 'Nouvel enregistrement – ' : '') + esc(sc.titre) + (l.numero ? ' · ' + esc(l.numero) : l.code ? ' · ' + esc(l.code) : '') + '</h3>' +
+    (lecture ? '<span class="droits-info">Lecture seule</span>' : '') + '<button class="fermer" title="Fermer">×</button></div>' +
+    '<form id="fForm"><div class="corps">' + champs.map(function (c) { return inputChamp(c, l[c.n], lecture); }).join('') + '</div><div id="fErr" style="padding:0 20px"></div>' +
+    '<div class="pied">' + (!nouveau && d.supprimer ? '<button type="button" class="btn btn-r" id="bSuppr" style="margin-right:auto">Supprimer</button>' : '') +
+    (t === 'factures' && !lecture ? '<button type="button" class="btn btn-c" id="bTva">TVA 18 %</button>' : '') +
+    '<button type="button" class="btn btn-c" id="bAnn">' + (lecture ? 'Fermer' : 'Annuler') + '</button>' +
+    (lecture ? '' : '<button type="submit" class="btn btn-p" id="bEnr">Enregistrer</button>') + '</div></form></div>';
+  document.body.appendChild(v);
+  var fermer = function () { v.remove(); };
+  $('.fermer', v).onclick = fermer; $('#bAnn', v).onclick = fermer;
+  v.addEventListener('mousedown', function (e) { if (e.target === v) fermer(); });
+  if ($('#bTva', v)) $('#bTva', v).onclick = function () { var ht = Number($('#f_montant_ht', v).value || 0); $('#f_tva', v).value = Math.round(ht * 0.18 * 100) / 100; };
+  if (t === 'releves' && nouveau) {
+    var verifier = function () {
+      var e = $('#f_engin', v).value, c = Number($('#f_compteur', v).value);
+      var prec = (S.cache.releves || []).filter(function (r) { return r.engin === e && r.compteur !== '' && r.compteur != null; }).sort(function (a, b) { return a.date < b.date ? 1 : -1; })[0];
+      var aide = $('#f_compteur', v).parentNode.querySelector('.aide') || (function () { var x = document.createElement('div'); x.className = 'aide'; $('#f_compteur', v).parentNode.appendChild(x); return x; })();
+      aide.innerHTML = prec ? 'Dernier compteur : <b>' + nb(prec.compteur) + '</b> le ' + dfr(prec.date) + (c && c < Number(prec.compteur) ? ' <span style="color:var(--rouge)">⚠ inférieur au dernier relevé</span>' : '') : '';
+    };
+    $('#f_engin', v).addEventListener('change', verifier); $('#f_compteur', v).addEventListener('input', verifier); verifier();
+  }
+  $$('[data-up]', v).forEach(function (inp) {
+    inp.onchange = function () {
+      var f = inp.files[0]; if (!f) return;
+      if (f.size > 10 * 1024 * 1024) return toast('Fichier trop volumineux (10 Mo max.)', true);
+      var lbl = inp.parentNode; lbl.firstChild.textContent = 'Envoi…';
+      var rd = new FileReader();
+      rd.onload = function () {
+        appel('televerser', { table: t, nom: f.name, type: f.type, contenu: String(rd.result).split(',')[1] }).then(function (r) {
+          $('#f_' + inp.getAttribute('data-up'), v).value = r.url; lbl.firstChild.textContent = 'Fichier joint ✓'; toast('Fichier enregistré dans le Drive');
+        }).catch(function (e) { lbl.firstChild.textContent = 'Joindre un fichier'; toast(e.message, true); });
+      };
+      rd.readAsDataURL(f);
+    };
+  });
+  if ($('#bSuppr', v)) $('#bSuppr', v).onclick = function () {
+    if (!confirm('Supprimer définitivement cet enregistrement ?')) return;
+    appel('supprimer', { table: t, id: l.id }).then(function () { fermer(); toast('Supprimé'); vueTable(t); }).catch(function (e) { $('#fErr', v).innerHTML = '<div class="msg msg-e">' + esc(e.message) + '</div>'; });
+  };
+  $('#fForm', v).addEventListener('submit', function (e) {
+    e.preventDefault();
+    var o = { id: l.id || '' };
+    champs.forEach(function (c) { if (c.ro) return; var el = $('#f_' + c.n, v); if (el) o[c.n] = el.value; });
+    if (t === 'factures' && !nouveau && ligne && String(ligne.net_ttc) === String(o.net_ttc) &&
+      (String(ligne.montant_ht) !== String(o.montant_ht) || String(ligne.tva) !== String(o.tva) || String(ligne.cession_ht) !== String(o.cession_ht) || String(ligne.retenue) !== String(o.retenue))) {
+      o.net_ttc = ''; // recalcul automatique du net si les montants ont changé
+    }
+    var b = $('#bEnr', v); b.disabled = true; b.textContent = 'Enregistrement…';
+    appel('enregistrer', { table: t, ligne: o }).then(function () {
+      fermer(); toast(nouveau ? 'Ajouté' : 'Modifié'); if (S.vue === t) vueTable(t); else { delete S.cache[t]; afficherVue(); }
+    }).catch(function (er) { b.disabled = false; b.textContent = 'Enregistrer'; $('#fErr', v).innerHTML = '<div class="msg msg-e">' + esc(er.message) + '</div>'; });
+  });
+}
+
+/* ---------- administration : utilisateurs ---------- */
+function vueUtilisateurs() {
+  entete('Utilisateurs & droits', 'Profil = niveau d\'action · Modules = données accessibles', '<button class="btn btn-p" id="bNouvU">+ Nouvel utilisateur</button>');
+  $('#bNouvU').onclick = function () { formUtilisateur(null); };
+  chargement();
+  appel('utilisateurs').then(function (us) {
+    S.cache.utilisateurs = us;
+    var rows = us.map(function (u) {
+      return '<tr data-u="' + esc(u.identifiant) + '"><td><b>' + esc(u.identifiant) + '</b></td><td>' + esc(u.nom) + '</td><td><span class="badge b-' + u.profil + '">' + esc(S.ctx.profils[u.profil] || u.profil) + '</span></td><td>' +
+        esc(u.profil === 'ADMIN' ? 'Tous' : (u.modules || []).map(function (m) { return S.ctx.modules[m]; }).join(', ')) + '</td><td>' + (u.actif ? '<span class="pastille s-payee">Actif</span>' : '<span class="pastille s-annulee">Désactivé</span>') +
+        (u.doit_changer ? ' <span class="pastille s-proche">Mot de passe à changer</span>' : '') + '</td><td>' + esc(u.derniere_connexion || '—') + '</td>' +
+        '<td>' + (u.actif ? '<button class="btn btn-c btn-envoi" data-env="' + esc(u.identifiant) + '">' + ico('send') + ' Envoyer l\'accès</button>' : '') + '</td></tr>';
+    }).join('');
+    $('#contenu').innerHTML =
+      '<div class="bloc"><h3>Que peut faire chaque profil ?</h3><div class="tab-wrap" style="box-shadow:none"><table class="t"><thead><tr><th>Profil</th><th>Droits dans ses modules</th></tr></thead><tbody>' +
+      '<tr><td><span class="badge b-ADMIN">Administrateur</span></td><td>Tout, dans tous les modules + utilisateurs, journal, paramètres</td></tr>' +
+      '<tr><td><span class="badge b-EDITEUR">Éditeur</span></td><td>Consulter, ajouter, modifier et supprimer</td></tr>' +
+      '<tr><td><span class="badge b-UTILISATEUR">Utilisateur</span></td><td>Consulter et ajouter des saisies (sans modifier ni supprimer)</td></tr>' +
+      '<tr><td><span class="badge b-INVITE">Invité</span></td><td>Tableau de bord de ses modules, en lecture seule</td></tr>' +
+      '</tbody></table></div><p class="compte" style="margin:10px 0 0">Modules : <b>Comptabilité</b> = factures et dépenses · <b>Logistique</b> = engins, relevés, carburant, dépenses, chauffeurs · <b>Commercial</b> = factures et encours clients en consultation.</p></div>' +
+      '<div class="tab-wrap"><table class="t"><thead><tr><th>Identifiant</th><th>Nom</th><th>Profil</th><th>Modules</th><th>État</th><th>Dernière connexion</th><th>Accès</th></tr></thead><tbody>' + rows + '</tbody></table></div>';
+    var parId = function (id) { return us.filter(function (u) { return u.identifiant === id; })[0]; };
+    $$('tr[data-u]').forEach(function (tr) { tr.onclick = function () { formUtilisateur(parId(tr.getAttribute('data-u'))); }; });
+    $$('[data-env]').forEach(function (b) { b.onclick = function (e) { e.stopPropagation(); envoiAcces(parId(b.getAttribute('data-env')), ''); }; });
+    blocChauffeurs();
+  }).catch(erreurVue);
+}
+
+function formUtilisateur(u) {
+  var nouveau = !u; u = u || { profil: 'UTILISATEUR', modules: [], actif: true };
+  var v = document.createElement('div'); v.className = 'voile';
+  var profils = Object.keys(S.ctx.profils).map(function (p) { return '<option value="' + p + '" ' + (u.profil === p ? 'selected' : '') + '>' + esc(S.ctx.profils[p]) + '</option>'; }).join('');
+  var mods = Object.keys(S.ctx.modules).map(function (m) { return '<label><input type="checkbox" value="' + m + '" ' + ((u.modules || []).indexOf(m) >= 0 ? 'checked' : '') + '> ' + esc(S.ctx.modules[m]) + '</label>'; }).join('');
+  v.innerHTML = '<div class="modale" style="max-width:560px"><div class="tete"><h3>' + (nouveau ? 'Nouvel utilisateur' : 'Utilisateur · ' + esc(u.identifiant)) + '</h3><button class="fermer">×</button></div>' +
+    '<form id="fU"><div class="corps">' +
+    '<div class="champ"><label class="req">Identifiant</label><input id="uId" value="' + esc(u.identifiant || '') + '" ' + (nouveau ? '' : 'disabled') + ' placeholder="ex. compta.kone"></div>' +
+    '<div class="champ"><label class="req">Nom complet</label><input id="uNom" value="' + esc(u.nom || '') + '"></div>' +
+    '<div class="champ"><label class="req">Profil</label><select id="uProfil">' + profils + '</select></div>' +
+    '<div class="champ"><label>État</label><select id="uActif"><option value="1" ' + (u.actif ? 'selected' : '') + '>Actif</option><option value="0" ' + (u.actif ? '' : 'selected') + '>Désactivé</option></select></div>' +
+    '<div class="champ"><label>E-mail</label><input id="uMail" type="email" value="' + esc(u.email || '') + '" placeholder="pour l\'envoi des accès"></div>' +
+    '<div class="champ"><label>Téléphone WhatsApp</label><input id="uTel" type="tel" value="' + esc(u.telephone || '') + '" placeholder="ex. 07 07 00 00 00"></div>' +
+    '<div class="champ large"><label>Modules accessibles</label><div class="cases" id="uMods">' + mods + '</div><div class="aide">L\'administrateur a accès à tout, sans tenir compte des modules.</div></div>' +
+    '<div class="champ large"><label class="' + (nouveau ? 'req' : '') + '">' + (nouveau ? 'Mot de passe provisoire' : 'Réinitialiser le mot de passe (laisser vide pour ne pas changer)') + '</label><input id="uMdp" type="text" autocomplete="off"><div class="aide">8 caractères min., lettres et chiffres. L\'utilisateur devra le changer à sa première connexion.</div></div>' +
+    '</div><div id="uErr" style="padding:0 20px"></div><div class="pied">' + (!nouveau && u.identifiant !== S.user.identifiant ? '<button type="button" class="btn btn-r" id="uSuppr" style="margin-right:auto">Supprimer</button>' : '') +
+    '<button type="button" class="btn btn-c" id="uAnn">Annuler</button><button class="btn btn-p" type="submit">Enregistrer</button></div></form></div>';
+  document.body.appendChild(v);
+  var fermer = function () { v.remove(); };
+  $('.fermer', v).onclick = fermer; $('#uAnn', v).onclick = fermer;
+  if ($('#uSuppr', v)) $('#uSuppr', v).onclick = function () {
+    if (!confirm('Supprimer le compte « ' + u.identifiant + ' » ? (Vous pouvez aussi simplement le désactiver.)')) return;
+    appel('supprimerUtilisateur', { identifiant: u.identifiant }).then(function () { fermer(); toast('Utilisateur supprimé'); vueUtilisateurs(); }).catch(function (e) { $('#uErr', v).innerHTML = '<div class="msg msg-e">' + esc(e.message) + '</div>'; });
+  };
+  $('#fU', v).addEventListener('submit', function (e) {
+    e.preventDefault();
+    var p = { creation: nouveau, identifiant: $('#uId', v).value, nom: $('#uNom', v).value, profil: $('#uProfil', v).value, actif: $('#uActif', v).value === '1',
+      modules: $$('#uMods input:checked', v).map(function (x) { return x.value; }), motdepasse: $('#uMdp', v).value,
+      email: $('#uMail', v).value.trim(), telephone: $('#uTel', v).value.trim() };
+    appel('enregistrerUtilisateur', p).then(function () {
+      fermer(); toast('Utilisateur enregistré');
+      vueUtilisateurs();
+      if (p.motdepasse && p.actif) envoiAcces({ identifiant: p.identifiant.toLowerCase(), nom: p.nom, profil: p.profil, modules: p.modules, actif: true, email: p.email, telephone: p.telephone }, p.motdepasse);
+    }).catch(function (er) { $('#uErr', v).innerHTML = '<div class="msg msg-e">' + esc(er.message) + '</div>'; });
+  });
+}
+
+/* ---------- liaison Excel ---------- */
+function vueExcel() {
+  entete('Liaison Excel', 'Vos fichiers Excel se mettent à jour avec RAIA, et inversement');
+  chargement();
+  appel('cleExcel').then(function (info) { dessinerExcel(info, null); }).catch(erreurVue);
+}
+function dessinerExcel(info, nouvelle) {
+  var d = info.droits || {}, lien = info.lien || S.ctx.app.lien || '';
+  var droit = function (t, lib) {
+    var x = d[t] || {};
+    var txt = !x.lire ? '<span class="pastille s-annulee">Aucun accès</span>' : (x.modifier ? '<span class="pastille s-payee">Lecture + envoi + modification</span>' : x.creer ? '<span class="pastille s-proche">Lecture + ajout (sans modification)</span>' : '<span class="pastille s-attente">Lecture seule</span>');
+    return '<tr class="tl"><td>' + lib + '</td><td>' + txt + '</td></tr>';
+  };
+  var h = '<div class="deux"><div class="bloc"><h3>1. Votre clé Excel personnelle</h3>' +
+    (nouvelle ? '<div class="msg msg-i">Clé générée. Copiez-la maintenant : elle ne sera plus affichée.</div><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px"><code class="mdp" id="xCle">' + esc(nouvelle) + '</code><button class="btn btn-c" id="xCopier">Copier</button></div>' :
+      (info.active ? '<p>Une clé est active depuis le <b>' + esc(info.le) + '</b>. Pour la saisir dans un nouveau fichier, générez-en une nouvelle (l\'ancienne cessera de fonctionner).</p>' : '<p>Aucune clé active. Générez votre clé, puis saisissez-la dans Excel.</p>')) +
+    '<p class="compte">La clé relie Excel à <b>votre compte</b> : Excel ne peut lire et envoyer que ce que vos droits RAIA autorisent. Ne la partagez pas.</p>' +
+    '<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-p" id="xGen">' + (info.active ? 'Générer une nouvelle clé' : 'Générer ma clé') + '</button>' +
+    (info.active || nouvelle ? '<button class="btn btn-c" id="xRev">Désactiver la liaison</button>' : '') + '</div>' +
+    '<h3 style="margin-top:18px">2. Lien RAIA</h3>' + (lien ? '<div style="display:flex;gap:8px;align-items:center"><code class="mdp" style="font-size:11.5px;font-weight:600;word-break:break-all">' + esc(lien) + '</code></div>' : '<p class="compte">Demandez le lien /exec à l\'administrateur.</p>') +
+    '</div><div class="bloc"><h3>Vos droits depuis Excel</h3><div class="tab-wrap" style="box-shadow:none"><table class="t tl"><tbody>' +
+    droit('factures', 'Factures (Application_MAJ)') + droit('releves', 'Relevés & carburant (Parc_Auto)') + droit('engins', 'Engins (lecture des codes)') +
+    '</tbody></table></div><p class="compte" style="margin-top:10px">Une ligne modifiée des deux côtés : <b>RAIA fait foi</b>. Une ligne supprimée dans Excel n\'est jamais supprimée dans RAIA. Les contrôles de RAIA s\'appliquent aux envois (doublons, champs obligatoires).</p></div></div>';
+  h += '<div class="bloc"><h3>3. Dans Excel (une seule fois par fichier)</h3><ol style="margin:0;padding-left:20px;line-height:1.8;font-size:13.5px">' +
+    '<li>Ouvrez <b>Application_MAJ_V05_RAIA.xlsm</b> ou <b>Parc_Auto_MAJ_V003_RAIA.xlsm</b> et cliquez sur <b>Activer le contenu</b> (macros).</li>' +
+    '<li>Appuyez sur <b>Alt + F8</b>, choisissez <b>RAIA_Configurer</b> puis <b>Exécuter</b>.</li>' +
+    '<li>Collez le <b>lien RAIA</b> puis votre <b>clé Excel</b>. Excel vérifie la connexion et propose la première synchronisation.</li>' +
+    '<li>Ensuite tout est automatique : à l\'ouverture du fichier et toutes les 30 minutes (réglable dans la feuille <b>RAIA</b>, bouton <b>Synchroniser maintenant</b>).</li></ol>' +
+    '<p class="compte" style="margin-top:10px">Ce qui est synchronisé : <b>Application_MAJ</b> ⇄ factures (feuille Liste Factures) · <b>Parc_Auto</b> ⇄ relevés de chaque feuille « Suivi km / Suivi h ». Le détail de chaque passage est dans la feuille <b>RAIA Journal</b>. Excel pour Windows uniquement.</p></div>';
+  $('#contenu').innerHTML = h;
+  $('#xGen').onclick = function () {
+    if (info.active && !confirm('Générer une nouvelle clé ? Les fichiers Excel reliés avec l\'ancienne clé devront être reconfigurés.')) return;
+    appel('genererCleExcel').then(function (r) { info.active = true; info.le = r.le; if (r.lien) info.lien = r.lien; dessinerExcel(info, r.cle); }).catch(function (e) { toast(e.message, true); });
+  };
+  if ($('#xRev')) $('#xRev').onclick = function () {
+    if (!confirm('Désactiver la liaison ? Les fichiers Excel ne pourront plus échanger avec RAIA.')) return;
+    appel('revoquerCleExcel').then(function () { info.active = false; dessinerExcel(info, null); toast('Liaison désactivée'); }).catch(function (e) { toast(e.message, true); });
+  };
+  if ($('#xCopier')) $('#xCopier').onclick = function () {
+    var t = document.createElement('textarea'); t.value = nouvelle; document.body.appendChild(t); t.select();
+    var ok = false; try { ok = document.execCommand('copy'); } catch (e) { } t.remove();
+    toast(ok ? 'Clé copiée' : 'Sélectionnez la clé puis Ctrl+C', !ok);
+  };
+}
+
+/* ---------- accès chauffeurs (application mobile) ---------- */
+function lienChauffeur() { if (S.ctx.app.lien_chauffeur) return S.ctx.app.lien_chauffeur; return (S.ctx.app.lien || '') + (S.ctx.app.lien ? '?page=chauffeur' : ''); }
+function blocChauffeurs() {
+  var zone = document.createElement('div'); zone.className = 'bloc'; zone.id = 'blocCh';
+  zone.innerHTML = '<h3>Application chauffeurs (photo du compteur)</h3><div class="chargement"><div class="rond"></div>Chargement…</div>';
+  $('#contenu').appendChild(zone);
+  Promise.all([appel('lister', { table: 'engins' }), appel('lister', { table: 'personnel' })]).then(function (r) {
+    var engins = r[0].lignes, pers = r[1].lignes;
+    var tel = function (nom) { var p = pers.filter(function (x) { return String(x.nom).trim().toLowerCase() === String(nom || '').trim().toLowerCase(); })[0]; return p ? p.telephone || '' : ''; };
+    var lien = lienChauffeur();
+    zone.innerHTML = '<h3>Application chauffeurs (photo du compteur)</h3>' +
+      '<p class="compte" style="margin:0 0 10px">Lien unique pour tous les chauffeurs : <b style="word-break:break-all">' + esc(lien || '(lien /exec non connu)') + '</b>. Chaque engin a son code PIN. Le chauffeur choisit son engin, saisit le code, photographie le compteur : le relevé arrive dans RAIA avec la photo.</p>' +
+      '<div class="tab-wrap" style="box-shadow:none"><table class="t tl"><thead><tr><th>Engin</th><th>Conducteur</th><th>Code PIN</th><th></th></tr></thead><tbody>' +
+      engins.map(function (e) {
+        var pin = String(e.pin_chauffeur || '').trim();
+        return '<tr><td><b>' + esc(e.code) + '</b> <span class="compte">' + esc(e.immatriculation || '') + '</span></td><td>' + esc(e.conducteur || '') + '</td><td>' + (pin ? '<code class="mdp" style="font-size:12.5px">' + esc(pin) + '</code>' : '<span class="compte">non défini</span>') + '</td>' +
+          '<td style="text-align:right"><button class="btn btn-c btn-envoi" data-pin="' + esc(e.id) + '">' + (pin ? 'Nouveau code' : 'Créer un code') + '</button> ' +
+          (pin ? '<button class="btn btn-c btn-envoi" data-wa="' + esc(e.id) + '">' + ico('send') + ' WhatsApp</button>' : '') + '</td></tr>';
+      }).join('') + '</tbody></table></div>';
+    $$('[data-pin]', zone).forEach(function (b) {
+      b.onclick = function () {
+        var e = engins.filter(function (x) { return x.id === b.getAttribute('data-pin'); })[0];
+        if (e.pin_chauffeur && !confirm('Remplacer le code de ' + e.code + ' ? L\'ancien code ne fonctionnera plus.')) return;
+        var a = new Uint32Array(1); window.crypto.getRandomValues(a);
+        var pin = String(1000 + a[0] % 9000);
+        appel('enregistrer', { table: 'engins', ligne: Object.assign({}, e, { pin_chauffeur: pin }) }).then(function () { toast('Code ' + e.code + ' : ' + pin); zone.remove(); blocChauffeurs(); }).catch(function (er) { toast(er.message, true); });
+      };
+    });
+    $$('[data-wa]', zone).forEach(function (b) {
+      b.onclick = function () {
+        var e = engins.filter(function (x) { return x.id === b.getAttribute('data-wa'); })[0];
+        var msg = 'Bonjour ' + (e.conducteur || '') + ',\n\nPour envoyer vos relevés de compteur à ' + S.ctx.app.societe + ', utilisez l\'application RAIA Chauffeur :\n\n' +
+          '🔗 ' + lien + '\n🚚 Engin : ' + e.code + (e.immatriculation ? ' (' + e.immatriculation + ')' : '') + '\n🔑 Code : ' + e.pin_chauffeur + '\n\n' +
+          'Chaque jour : choisissez votre engin, tapez le code, prenez la photo du compteur, vérifiez le chiffre et envoyez. Ajoutez le carburant, le chantier et les dépenses si besoin.\n' +
+          '📲 Installation (une seule fois, avec internet) : ouvrez le lien puis\n• Android : touchez « Installer l\'application » (ou menu ⋮ > Installer l\'application)\n• iPhone : dans Safari, bouton Partager > « Sur l\'écran d\'accueil »\nEnsuite, ouvrez RAIA depuis l\'icône : elle fonctionne aussi sans réseau.\n\nNe communiquez pas ce code.';
+        var a = document.createElement('a'); a.href = 'https://wa.me/' + telWhatsApp(tel(e.conducteur)) + '?text=' + encodeURIComponent(msg); a.target = '_blank'; a.rel = 'noopener';
+        document.body.appendChild(a); a.click(); a.remove();
+      };
+    });
+  }).catch(function (e) { zone.innerHTML = '<h3>Application chauffeurs</h3><div class="msg msg-e">' + esc(e.message) + '</div>'; });
+}
+
+/* ---------- envoi des accès à un collaborateur ---------- */
+function telWhatsApp(t) {
+  var d = String(t || '').replace(/[^\d+]/g, '');
+  if (!d) return '';
+  if (d.charAt(0) === '+') return d.slice(1);
+  if (d.slice(0, 2) === '00') return d.slice(2);
+  if (d.length === 10 || d.length === 8) return '225' + d;
+  return d;
+}
+function mdpProvisoire() {
+  var l = 'abcdefghjkmnpqrstuvwxyz', c = '23456789', r = '';
+  var a = new Uint32Array(8); (window.crypto || window.msCrypto).getRandomValues(a);
+  for (var i = 0; i < 6; i++) r += l.charAt(a[i] % l.length);
+  return r.charAt(0).toUpperCase() + r.slice(1) + c.charAt(a[6] % c.length) + c.charAt(a[7] % c.length);
+}
+function messageAcces(u, lien, mdp) {
+  var prenom = String(u.nom || u.identifiant).trim().split(/\s+/).slice(-1)[0];
+  var mods = u.profil === 'ADMIN' ? 'tous les modules' : (u.modules || []).map(function (m) { return S.ctx.modules[m]; }).join(', ') || 'le tableau de bord';
+  return 'Bonjour ' + prenom + ',\n\n' +
+    'Vous avez désormais accès à RAIA, le logiciel de gestion de ' + S.ctx.app.societe + ' (' + (S.ctx.profils[u.profil] || u.profil) + ' · ' + mods + ').\n\n' +
+    'Lien : ' + (lien || '[lien RAIA]') + '\n' +
+    'Identifiant : ' + u.identifiant + '\n' +
+    'Mot de passe provisoire : ' + (mdp || '[communiqué séparément]') + '\n\n' +
+    'À la première connexion, RAIA vous demandera de choisir votre mot de passe personnel (8 caractères minimum, lettres et chiffres). Ne le communiquez à personne.\n\n' +
+    'Pour avoir l\'icône RAIA sur votre ordinateur : ouvrez le lien dans Microsoft Edge, menu ⋯ > Applications > « Installer ce site en tant qu\'application ». ' +
+    'Sur téléphone : menu ⋮ > « Ajouter à l\'écran d\'accueil ».\n\n' +
+    'Le bandeau « Cette application a été créée par un utilisateur de Google Apps Script » en haut de la page est normal.\n\n' +
+    'Cordialement,\n' + S.user.nom + '\n' + S.ctx.app.societe;
+}
+function envoiAcces(u, mdp) {
+  if (!u) return;
+  var lien = S.ctx.app.lien || '';
+  var v = document.createElement('div'); v.className = 'voile';
+  v.innerHTML = '<div class="modale" style="max-width:680px"><div class="tete"><h3>Envoyer l\'accès · ' + esc(u.nom || u.identifiant) + '</h3><button class="fermer">×</button></div><div class="corps">' +
+    (lien ? '' : '<div class="champ large"><label class="req">Lien RAIA (se terminant par /exec)</label><input id="eLien" placeholder="https://script.google.com/macros/s/…/exec"><div class="aide">Saisi une seule fois : il sera mémorisé au premier envoi par e-mail.</div></div>') +
+    '<div class="champ"><label>E-mail</label><input id="eMail" type="email" value="' + esc(u.email || '') + '"></div>' +
+    '<div class="champ"><label>Téléphone WhatsApp</label><input id="eTel" type="tel" value="' + esc(u.telephone || '') + '" placeholder="ex. 07 07 00 00 00"></div>' +
+    '<div class="champ large"><label>Mot de passe provisoire</label><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><code id="eMdp" class="mdp">' + esc(mdp || 'non inclus') + '</code>' +
+    '<button type="button" class="btn btn-c" id="eGen">' + (mdp ? 'En générer un autre' : 'Générer un nouveau mot de passe') + '</button></div>' +
+    '<div class="aide">' + (mdp ? 'Mot de passe enregistré : il figure dans le message.' : 'Pour un compte existant, le mot de passe n\'est pas connu de RAIA. Générez-en un nouveau (l\'ancien ne fonctionnera plus) ou communiquez-le séparément.') + '</div></div>' +
+    '<div class="champ large"><label>Message (modifiable)</label><textarea id="eMsg" rows="13" style="font-size:12.5px;line-height:1.45"></textarea></div>' +
+    '<div id="eErr" class="large"></div>' +
+    '</div><div class="pied envoi">' +
+    '<button type="button" class="btn btn-c" id="eCopier">Copier</button>' +
+    '<button type="button" class="btn btn-c" id="eWa">WhatsApp</button>' +
+    '<button type="button" class="btn btn-c" id="eOutlook">Outlook</button>' +
+    '<button type="button" class="btn btn-c" id="eGmail">Gmail</button>' +
+    '<button type="button" class="btn btn-p" id="eAuto">' + ico('send') + ' Envoyer par e-mail</button></div></div>';
+  document.body.appendChild(v);
+  var fermer = function () { v.remove(); };
+  $('.fermer', v).onclick = fermer;
+  var lienCourant = function () { return lien || ($('#eLien', v) ? $('#eLien', v).value.trim() : ''); };
+  var maj = function () { $('#eMsg', v).value = messageAcces(u, lienCourant(), mdp); };
+  maj();
+  if ($('#eLien', v)) $('#eLien', v).oninput = maj;
+  var objet = 'Votre accès au logiciel RAIA – ' + S.ctx.app.societe;
+  var err = function (m, ok) { $('#eErr', v).innerHTML = m ? '<div class="msg ' + (ok ? 'msg-i' : 'msg-e') + '">' + esc(m) + '</div>' : ''; };
+  var verifier = function () {
+    var l = lienCourant();
+    if (!/^https:\/\/script\.google\.com\/.+\/exec$/.test(l)) { err('Indiquez le lien RAIA se terminant par /exec.'); return false; }
+    return true;
+  };
+  var ouvrir = function (url) { var a = document.createElement('a'); a.href = url; a.target = '_blank'; a.rel = 'noopener'; document.body.appendChild(a); a.click(); a.remove(); };
+  $('#eGen', v).onclick = function () {
+    if (!confirm('Générer un nouveau mot de passe provisoire pour « ' + u.identifiant + ' » ? L\'ancien ne fonctionnera plus.')) return;
+    var n = mdpProvisoire();
+    appel('enregistrerUtilisateur', { creation: false, identifiant: u.identifiant, nom: u.nom, profil: u.profil, actif: u.actif !== false, modules: u.modules || [], motdepasse: n, email: $('#eMail', v).value.trim() || u.email || '', telephone: $('#eTel', v).value.trim() || u.telephone || '' })
+      .then(function () { mdp = n; $('#eMdp', v).textContent = n; maj(); err('Nouveau mot de passe enregistré. Il devra être changé à la première connexion.', true); })
+      .catch(function (e) { err(e.message); });
+  };
+  $('#eCopier', v).onclick = function () {
+    var t = $('#eMsg', v); t.focus(); t.select();
+    var ok = false; try { ok = document.execCommand('copy'); } catch (e) { }
+    if (!ok && navigator.clipboard) navigator.clipboard.writeText(t.value).then(function () { toast('Message copié'); }, function () { toast('Sélectionnez le texte puis Ctrl+C', true); });
+    else toast(ok ? 'Message copié' : 'Sélectionnez le texte puis Ctrl+C', !ok);
+  };
+  $('#eWa', v).onclick = function () {
+    if (!verifier()) return;
+    ouvrir('https://wa.me/' + telWhatsApp($('#eTel', v).value) + '?text=' + encodeURIComponent($('#eMsg', v).value));
+  };
+  $('#eOutlook', v).onclick = function () {
+    if (!verifier()) return;
+    ouvrir('mailto:' + encodeURIComponent($('#eMail', v).value.trim()) + '?subject=' + encodeURIComponent(objet) + '&body=' + encodeURIComponent($('#eMsg', v).value));
+  };
+  $('#eGmail', v).onclick = function () {
+    if (!verifier()) return;
+    ouvrir('https://mail.google.com/mail/?view=cm&fs=1&to=' + encodeURIComponent($('#eMail', v).value.trim()) + '&su=' + encodeURIComponent(objet) + '&body=' + encodeURIComponent($('#eMsg', v).value));
+  };
+  $('#eAuto', v).onclick = function () {
+    if (!verifier()) return;
+    var mail = $('#eMail', v).value.trim();
+    if (!mail) { err('Saisissez l\'adresse e-mail du collaborateur.'); return; }
+    var b = this; b.disabled = true; b.textContent = 'Envoi…';
+    appel('envoyerAcces', { identifiant: u.identifiant, email: mail, objet: objet, message: $('#eMsg', v).value, lien: lienCourant() })
+      .then(function () { if (!S.ctx.app.lien) S.ctx.app.lien = lienCourant(); fermer(); toast('Accès envoyé à ' + mail); if (S.vue === 'utilisateurs') vueUtilisateurs(); })
+      .catch(function (e) { err(e.message); b.disabled = false; b.innerHTML = ico('send') + ' Envoyer par e-mail'; });
+  };
+}
+
+/* ---------- administration : journal ---------- */
+function vueJournal() {
+  entete('Journal des accès', 'Connexions, modifications et refus d\'accès (1 000 derniers événements)');
+  chargement();
+  appel('journal', { limite: 1000 }).then(function (j) {
+    S.cache.journal = j;
+    var dessiner = function (q) {
+      q = (q || '').toLowerCase();
+      var l = j.filter(function (r) { return !q || (r.date + ' ' + r.identifiant + ' ' + r.action + ' ' + r.detail).toLowerCase().indexOf(q) >= 0; });
+      $('#jt').innerHTML = l.slice(0, 500).map(function (r) {
+        var cls = /Échec|refusé/.test(r.action) ? 's-retard' : /Suppression|supprimé/.test(r.action) ? 's-proche' : 's-attente';
+        return '<tr><td>' + esc(r.date) + '</td><td><b>' + esc(r.identifiant) + '</b></td><td><span class="pastille ' + cls + '">' + esc(r.action) + '</span></td><td>' + esc(r.detail) + '</td></tr>';
+      }).join('') || '<tr><td colspan="4" class="vide">Aucun événement</td></tr>';
+    };
+    $('#contenu').innerHTML = '<div class="outils"><input type="search" id="jq" placeholder="Filtrer (utilisateur, action…)"></div><div class="tab-wrap"><table class="t"><thead><tr><th>Date</th><th>Utilisateur</th><th>Action</th><th>Détail</th></tr></thead><tbody id="jt"></tbody></table></div>';
+    $('#jq').oninput = function () { dessiner($('#jq').value); };
+    dessiner('');
+  }).catch(erreurVue);
+}
+
+/* ---------- administration : paramètres & listes ---------- */
+function vueParametres() {
+  entete('Paramètres & listes', 'Valeurs proposées dans les formulaires et réglages des alertes');
+  chargement();
+  appel('parametres').then(function (p) {
+    var listes = {};
+    p.listes.forEach(function (r) { (listes[r.liste] = listes[r.liste] || []).push(r.valeur); });
+    ['Chantier', 'Type engin', 'Marque', 'Energie', 'Type depense'].forEach(function (k) { listes[k] = listes[k] || []; });
+    var hp = p.parametres.map(function (r, i) { return '<div class="champ"><label>' + esc(r.description || r.cle) + '</label><input data-pi="' + i + '" value="' + esc(r.valeur) + '"></div>'; }).join('');
+    var hl = Object.keys(listes).sort().map(function (k) { return '<div class="champ"><label>' + esc(k) + ' <span class="compte">(une valeur par ligne)</span></label><textarea rows="6" data-l="' + esc(k) + '">' + esc(listes[k].join('\n')) + '</textarea></div>'; }).join('');
+    $('#contenu').innerHTML = '<div class="deux"><div class="bloc"><h3>Réglages</h3>' + hp + '</div><div class="bloc"><h3>Listes déroulantes</h3>' + hl + '</div></div>' +
+      '<button class="btn btn-p" id="bEnrP">Enregistrer les paramètres</button>';
+    $('#bEnrP').onclick = function () {
+      var params = p.parametres.map(function (r, i) { return { cle: r.cle, valeur: $('[data-pi="' + i + '"]').value, description: r.description }; });
+      var ls = [];
+      $$('[data-l]').forEach(function (ta) { ta.value.split('\n').forEach(function (x) { if (x.trim()) ls.push({ liste: ta.getAttribute('data-l'), valeur: x.trim() }); }); });
+      appel('enregistrerParametres', { parametres: params, listes: ls }).then(function () {
+        toast('Paramètres enregistrés'); return appel('contexte');
+      }).then(function (c) { S.ctx = c; }).catch(function (e) { toast(e.message, true); });
+    };
+  }).catch(erreurVue);
+}
+
+/* ---------- installation ---------- */
+function vueInstaller() {
+  entete('Installer RAIA', 'Raccourci sur le bureau et ouverture dans sa propre fenêtre');
+  var lien = S.ctx.app.installeur;
+  $('#contenu').innerHTML = '<div class="deux"><div class="bloc"><h3>Ordinateur Windows (méthode recommandée)</h3>' +
+    '<p><b>Microsoft Edge</b> : ouvrez RAIA, menu <b>⋯</b> > <b>Applications</b> > <b>Installer ce site en tant qu\'application</b>, nommez-la <b>RAIA</b> puis <b>Installer</b>. Acceptez « Créer un raccourci sur le Bureau ».</p>' +
+    '<p><b>Google Chrome</b> : menu <b>⋮</b> > <b>Caster, enregistrer et partager</b> > <b>Créer un raccourci</b>, nommez-le <b>RAIA</b> et cochez <b>Ouvrir dans une fenêtre</b>.</p>' +
+    '<p>L\'icône <b>RAIA</b> apparaît sur le Bureau et dans le menu Démarrer ; RAIA s\'ouvre dans sa propre fenêtre.</p>' +
+    (lien ? '<p class="compte">Autre méthode (PC sans « Smart App Control ») : <a href="' + esc(lien) + '" target="_blank">télécharger Installer_RAIA.bat</a>, choisir « Télécharger quand même » puis double-cliquer dessus.</p>' : '') +
+    '</div>' +
+    '<div class="bloc"><h3>Téléphone ou tablette</h3><p><b>Android (Chrome)</b> : menu ⋮ > <b>Ajouter à l\'écran d\'accueil</b>.</p><p><b>iPhone (Safari)</b> : bouton Partager > <b>Sur l\'écran d\'accueil</b>.</p>' +
+    '<p class="compte">Les données restent dans le Google Drive de HOSHI BTP. Une copie de consultation est gardée sur l\'appareil pour travailler sans réseau ; elle est effacée à la déconnexion.</p></div></div>';
+}
+
+/* =====================================================================
+   Application chauffeur (mobile) : ?page=chauffeur
+   ===================================================================== */
+var C = { token: null, ctx: null, photo: null, ticket: null, lu: '', jetons: {}, file: [], sync: false };
+function cGarder(k, v) { try { if (v == null) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch (e) { } }
+function cLire(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+function cAppel(action, params, jeton) {
+  return new Promise(function (ok, ko) {
+    google.script.run.withSuccessHandler(function (r) {
+      if (r && r.ok) return ok(r.data);
+      var e = new Error((r && r.message) || 'Erreur'); e.code = r && r.erreur;
+      ko(e);
+    }).withFailureHandler(function () { var e = new Error('Pas de réseau : vérifiez la connexion et réessayez.'); e.reseau = true; ko(e); })
+      .api(jeton === undefined ? C.token : jeton, action, params || {});
+  });
+}
+/* Appel authentifié pour un engin : reconnexion automatique avec la clé de l'appareil si la session a expiré. */
+function cJeton(engin, cle, neuf) {
+  if (C.jetons[engin] && !neuf) return Promise.resolve(C.jetons[engin]);
+  if (!cle) { var e = new Error('Saisissez de nouveau le code de l\'engin.'); e.code = 'CLE'; return Promise.reject(e); }
+  return cAppel('chauffeurReprise', { engin: engin, cle: cle }, null).then(function (r) {
+    C.jetons[engin] = r.token; if (engin === cLire('raia_cengin')) { C.token = r.token; cCtx(r.contexte); }
+    return r.token;
+  });
+}
+function cAppelEngin(engin, cle, action, params) {
+  return cJeton(engin, cle).then(function (t) { return cAppel(action, params, t); }).catch(function (e) {
+    if (e.code !== 'SESSION') throw e;
+    return cJeton(engin, cle, true).then(function (t) { return cAppel(action, params, t); });
+  });
+}
+function cEcran(html) { $('#app').innerHTML = '<div class="ch">' + cBandeauInstall() + html + '</div>'; window.scrollTo(0, 0); cBrancherInstall(); }
+/* --- installation sur le téléphone (application installable) --- */
+var cInvite = null;
+window.addEventListener('beforeinstallprompt', function (ev) { ev.preventDefault(); cInvite = ev; var z = $('#cInst'); if (z) { z.outerHTML = cBandeauInstall(); cBrancherInstall(); } });
+window.addEventListener('appinstalled', function () { cInvite = null; var z = $('#cInst'); if (z) z.remove(); });
+function cInstallee() { return (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true; }
+function cBandeauInstall() {
+  if (!window.RAIA_PWA || cInstallee() || cLire('raia_inst_masque')) return '';
+  var ios = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  var txt = cInvite ? '<button class="ch-btn" id="cInstB" style="margin:6px 0 0;padding:11px">📲 Installer l\'application</button>'
+    : ios ? 'Dans Safari : bouton <b>Partager</b> <span style="font-size:16px">⎋</span> puis <b>« Sur l\'écran d\'accueil »</b>.'
+    : 'Menu <b>⋮</b> du navigateur puis <b>« Installer l\'application »</b> ou <b>« Ajouter à l\'écran d\'accueil »</b>.';
+  return '<div id="cInst" class="ch-file ok"><b>Installez RAIA Chauffeur sur ce téléphone</b><div class="t">' + txt + '</div><div style="text-align:right"><a href="#" id="cInstX" style="font-size:12.5px;color:var(--gris)">Plus tard</a></div></div>';
+}
+function cBrancherInstall() {
+  var b = $('#cInstB'); if (b) b.onclick = function () { if (!cInvite) return; cInvite.prompt(); cInvite.userChoice.then(function () { cInvite = null; var z = $('#cInst'); if (z) z.remove(); }); };
+  var x = $('#cInstX'); if (x) x.onclick = function (ev) { ev.preventDefault(); cGarder('raia_inst_masque', '1'); var z = $('#cInst'); if (z) z.remove(); };
+}
+/* Prépare la lecture automatique pour qu'elle marche ensuite sans réseau (téléchargée une fois). */
+function cPrechargerOCR() {
+  if (!window.RAIA_PWA || C.worker || C.prechargement || navigator.onLine === false) return;
+  C.prechargement = true;
+  setTimeout(function () {
+    cChargerOCR().then(function () {
+      return Tesseract.createWorker('eng', 1, { langPath: 'https://tessdata.projectnaptha.com/4.0.0_fast' }).then(function (w) {
+        return w.setParameters({ tessedit_char_whitelist: '0123456789', tessedit_pageseg_mode: '11' }).then(function () { if (!C.worker) C.worker = w; cGarder('raia_ocr_pret', '1'); });
+      });
+    }).catch(function () { C.prechargement = false; });
+  }, 4000);
+}
+function cTete(sous) {
+  return '<div class="ch-tete"><div class="logo-mark">R</div><div><b>RAIA Chauffeur</b><span>' + esc(sous || 'HOSHI BTP') + '</span></div></div>';
+}
+
+/* --- contexte de l'engin gardé sur le téléphone, complété par les relevés en attente --- */
+function cCtx(ctx) {
+  if (!ctx) return;
+  ctx.recu_le = Date.now();
+  C.ctxServeur = ctx; LOC.set('ch:ctx:' + ctx.engin.code, ctx);
+  C.ctx = cAvecFile(ctx);
+}
+function cAvecFile(ctx) {
+  var x = JSON.parse(JSON.stringify(ctx)), e = x.engin;
+  C.file.filter(function (it) { return it.engin === e.code; }).forEach(function (it) {
+    var k = Number(String(it.p.compteur).replace(',', '.'));
+    if (e.compteur === '' || e.compteur == null || it.p.date > String(e.dernier) || (it.p.date === String(e.dernier) && k > Number(e.compteur))) { e.compteur = k; e.dernier = it.p.date; }
+    x.releves.unshift({ date: it.p.date, compteur: k, carburant: it.p.carburant, attente: true });
+  });
+  x.releves.sort(function (a, b) { return a.date < b.date ? 1 : a.date > b.date ? -1 : Number(b.compteur) - Number(a.compteur); });
+  x.releves = x.releves.slice(0, 6);
+  return x;
+}
+function cChargerFile() { return LOC.get('ch:file').then(function (f) { C.file = Array.isArray(f) ? f : []; }); }
+function cGarderFile() { return LOC.set('ch:file', C.file); }
+
+function chauffeurDemarrer() {
+  document.title = 'RAIA Chauffeur';
+  cGarder('raia_ct', null);
+  window.addEventListener('online', function () { cMajFile(); cSynchroniser(); });
+  window.addEventListener('offline', cMajFile);
+  document.addEventListener('visibilitychange', function () { if (!document.hidden) cSynchroniser(); });
+  setInterval(cSynchroniser, 60000);
+  cEcran(cTete() + '<div class="chargement"><div class="rond"></div>Chargement…</div>');
+  cChargerFile().then(function () {
+    var engin = cLire('raia_cengin'), cle = cLire('raia_ccle');
+    if (!engin || !cle) return chauffeurConnexion();
+    return LOC.get('ch:ctx:' + engin).then(function (ctx) {
+      if (ctx) { C.ctxServeur = ctx; C.ctx = cAvecFile(ctx); chauffeurSaisie(); }
+      cJeton(engin, cle, true).then(function () {
+        if (formulaireVierge()) chauffeurSaisie(); else cMajFile();
+        cSynchroniser();
+      }).catch(function (e) {
+        if (e.code === 'CLE') { cGarder('raia_ccle', null); return chauffeurConnexion(e.message); }
+        if (!ctx) cEcran(cTete() + '<div class="ch-carte"><div class="msg msg-e">Pas de réseau. La première ouverture sur ce téléphone demande une connexion internet.</div><button class="ch-btn" onclick="chauffeurDemarrer()">Réessayer</button></div>');
+      });
+    });
+  });
+}
+function formulaireVierge() { var k = $('#cK'); return !k || (!k.value && !C.photo && !C.ticket && !$('#cO').value); }
+
+function chauffeurConnexion(msg) {
+  cEcran(cTete() + '<div class="chargement"><div class="rond"></div>Chargement des engins…</div>');
+  cAppel('chauffeurEngins', {}, null).then(function (liste) {
+    var dernier = cLire('raia_cengin') || '';
+    var opts = '<option value="">— Choisir l\'engin —</option>' + liste.map(function (e) { return '<option value="' + esc(e.code) + '" ' + (e.code === dernier ? 'selected' : '') + '>' + esc(e.code + (e.immatriculation ? ' · ' + e.immatriculation : '') + (e.type ? ' (' + e.type + ')' : '')) + '</option>'; }).join('');
+    var att = C.file.length ? '<div class="ch-file"><b>⏳ ' + C.file.length + ' relevé(s) en attente d\'envoi sur ce téléphone</b>Ils seront envoyés automatiquement.</div>' : '';
+    cEcran(cTete() + att + '<form id="cF" class="ch-carte">' + (msg ? '<div class="msg msg-e">' + esc(msg) + '</div>' : '') +
+      '<label>Mon engin</label><select id="cE" required>' + opts + '</select>' +
+      '<label>Code PIN de l\'engin</label><input id="cP" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="8" autocomplete="off" required placeholder="••••">' +
+      '<button class="ch-btn" type="submit">Entrer</button>' +
+      (liste.length ? '' : '<p class="compte">Aucun engin n\'a encore de code PIN : demandez-le à la logistique.</p>') + '</form>');
+    $('#cF').onsubmit = function (ev) {
+      ev.preventDefault();
+      var b = $('.ch-btn'), code = $('#cE').value; b.disabled = true; b.textContent = 'Vérification…';
+      cAppel('chauffeurConnexion', { engin: code, pin: $('#cP').value }, null).then(function (r) {
+        C.token = r.token; C.jetons[code] = r.token;
+        cGarder('raia_cengin', code); cGarder('raia_ccle', r.cle);
+        C.file.forEach(function (it) { if (it.engin === code) { it.cle = r.cle; if (it.etat === 'cle') it.etat = 'attente'; } });
+        cGarderFile();
+        cCtx(r.contexte); chauffeurSaisie(); cSynchroniser();
+      }).catch(function (e) { chauffeurConnexion(e.message); });
+    };
+  }).catch(function (e) { cEcran(cTete() + '<div class="ch-carte"><div class="msg msg-e">' + esc(e.reseau ? 'Pas de réseau. La première connexion d\'un engin demande internet ; ensuite l\'application fonctionne aussi sans réseau.' : e.message) + '</div><button class="ch-btn" onclick="chauffeurConnexion()">Réessayer</button></div>'); });
+}
+
+function chauffeurSaisie(msgOk) {
+  var x = C.ctx, e = x.engin, u = e.unite;
+  C.photo = null; C.ticket = null; C.lu = '';
+  var nom = cLire('raia_cnom') || e.conducteur || '';
+  var pers = (x.listes.personnel || []).map(function (n) { return '<option>' + esc(n) + '</option>'; }).join('');
+  var chs = (x.listes.chantiers || []).map(function (n) { return '<option>' + esc(n) + '</option>'; }).join('');
+  var der = e.compteur !== '' && e.compteur != null ? nb(e.compteur) + ' ' + u + ' le ' + dfr(e.dernier) : 'aucun relevé';
+  var jour = (x.recu_le && Date.now() - x.recu_le < 6 * 3600000) || auj() < x.date ? x.date : auj(); /* date du serveur si le contexte est récent */
+  cEcran(cTete(e.code + (e.immatriculation ? ' · ' + e.immatriculation : '')) +
+    (msgOk ? '<div class="msg msg-i ch-ok">' + msgOk + '</div>' : '') +
+    '<div id="cFile"></div>' +
+    '<div class="ch-info"><div><span>Dernier compteur</span><b>' + esc(der) + '</b></div>' + (e.vidange ? '<div><span>Vidange</span><b>' + esc(e.vidange) + '</b></div>' : '') + '</div>' +
+    '<form id="cS" class="ch-carte">' +
+    '<label>1. Photo du compteur (tableau de bord)</label>' +
+    '<label class="ch-photo" id="lPh"><input id="cPh" type="file" accept="image/*" capture="environment" hidden><span id="tPh">📷 Prendre la photo</span><img id="iPh" hidden></label>' +
+    '<div id="ocr" class="compte"></div>' +
+    '<label>2. Compteur (' + u + ')</label><input id="cK" inputmode="numeric" pattern="[0-9 ]*" required placeholder="Ex. ' + esc(e.compteur || '125000') + '">' +
+    '<div id="cKa" class="compte"></div>' +
+    '<label>Chauffeur</label><input id="cN" list="lN" value="' + esc(nom) + '" required><datalist id="lN">' + pers + '</datalist>' +
+    '<label>Date</label><input id="cD" type="date" value="' + esc(jour) + '" max="' + esc(jour) + '">' +
+    '<label>Chantier du jour</label><input id="cC" list="lC" value="' + esc(cLire('raia_cch') || '') + '"><datalist id="lC">' + chs + '</datalist>' +
+    '<div class="ch-deux"><div><label>Carburant (L)</label><input id="cL" inputmode="decimal" placeholder="0"></div><div><label>Dépense (F CFA)</label><input id="cM" inputmode="numeric" placeholder="0"></div></div>' +
+    '<label class="ch-photo petit" id="lTk"><input id="cTk" type="file" accept="image/*" capture="environment" hidden><span id="tTk">🧾 Photo du ticket carburant (facultatif)</span><img id="iTk" hidden></label>' +
+    '<label>Commentaire</label><textarea id="cO" rows="2" placeholder="Trajet, observation…"></textarea>' +
+    '<label class="ch-panne"><input type="checkbox" id="cPa"> Signaler une panne ou un problème</label>' +
+    '<div id="cErr"></div><button class="ch-btn" type="submit">Envoyer le relevé</button></form>' +
+    '<div class="ch-hist"><b>Derniers relevés</b>' + (x.releves.length ? x.releves.map(function (r) { return '<div' + (r.attente ? ' class="att"' : '') + '><span>' + (r.attente ? '⏳ ' : '') + dfr(r.date) + '</span><span>' + nb(r.compteur) + ' ' + u + '</span><span>' + (r.carburant ? nb(r.carburant) + ' L' : '') + '</span></div>'; }).join('') : '<div class="compte">Aucun</div>') + '</div>' +
+    '<p class="ch-pied"><a href="#" id="cQ">Changer d\'engin</a></p>');
+  cMajFile(); cPrechargerOCR();
+  $('#cQ').onclick = function (ev) { ev.preventDefault(); C.token = null; chauffeurConnexion(); };
+  $('#cK').oninput = cVerifierCompteur;
+  $('#cPh').onchange = function () {
+    var f = this.files && this.files[0]; if (!f) return;
+    $('#tPh').textContent = 'Préparation de la photo…';
+    cPreparerImage(f, 1400).then(function (r) {
+      C.photo = r.jpeg; $('#iPh').src = r.jpeg; $('#iPh').hidden = false; $('#tPh').textContent = '📷 Reprendre la photo';
+      cLireCompteur(r.canvas);
+    }).catch(function () { $('#tPh').textContent = '📷 Prendre la photo'; toast('Photo illisible, réessayez.', true); });
+  };
+  $('#cTk').onchange = function () {
+    var f = this.files && this.files[0]; if (!f) return;
+    cPreparerImage(f, 1200).then(function (r) { C.ticket = r.jpeg; $('#iTk').src = r.jpeg; $('#iTk').hidden = false; $('#tTk').textContent = '🧾 Ticket ajouté (toucher pour changer)'; });
+  };
+  $('#cS').onsubmit = function (ev) { ev.preventDefault(); chauffeurEnvoyer(false); };
+}
+
+/* --- encadré : réseau + relevés en attente --- */
+function cMajFile() {
+  var z = $('#cFile'); if (!z) return;
+  var hl = navigator.onLine === false, f = C.file;
+  if (!f.length && !hl) { z.innerHTML = ''; return; }
+  var h = '<div class="ch-file' + (f.length ? '' : ' ok') + '">';
+  if (hl) h += '<b>📶 Pas de réseau – vous pouvez continuer à saisir.</b>Les relevés restent sur le téléphone et partiront tout seuls au retour du réseau.';
+  if (f.length) {
+    if (!hl) h += '<b>⏳ ' + f.length + ' relevé(s) en attente d\'envoi' + (C.sync ? ' – envoi en cours…' : '') + '</b>';
+    h += f.map(function (it, i) {
+      var t = '<div class="it">' + esc(it.engin) + ' · ' + dfr(it.p.date) + ' · ' + nb(Number(String(it.p.compteur).replace(',', '.'))) + (it.p.carburant ? ' · ' + esc(it.p.carburant) + ' L' : '') + (it.p.photo ? ' · 📷' : '');
+      if (it.etat === 'attention') t += '<div class="n-a">⚠ ' + esc(it.msg) + '</div><button class="p" data-ok="' + i + '">Confirmer ce compteur</button><button data-sup="' + i + '">Supprimer</button>';
+      else if (it.etat === 'erreur') t += '<div class="n-e">' + esc(it.msg) + '</div><button data-re="' + i + '">Réessayer</button><button data-sup="' + i + '">Supprimer</button>';
+      else if (it.etat === 'cle') t += '<div class="n-a">Code de l\'engin changé : reconnectez-vous à ' + esc(it.engin) + ' pour envoyer.</div>';
+      return t + '</div>';
+    }).join('');
+    if (!hl && !C.sync) h += '<div class="it"><button class="p" id="cEnv">Envoyer maintenant</button></div>';
+  }
+  z.innerHTML = h + '</div>';
+  var b = $('#cEnv'); if (b) b.onclick = cSynchroniser;
+  $$('#cFile [data-ok]').forEach(function (x) { x.onclick = function () { var it = C.file[+x.getAttribute('data-ok')]; it.p.forcer = true; it.etat = 'attente'; cGarderFile().then(cSynchroniser); }; });
+  $$('#cFile [data-re]').forEach(function (x) { x.onclick = function () { C.file[+x.getAttribute('data-re')].etat = 'attente'; cGarderFile().then(cSynchroniser); }; });
+  $$('#cFile [data-sup]').forEach(function (x) { x.onclick = function () { if (!confirm('Supprimer ce relevé du téléphone ? Il ne sera pas envoyé.')) return; C.file.splice(+x.getAttribute('data-sup'), 1); cGarderFile().then(function () { cRafraichirCtx(); cMajFile(); }); }; });
+}
+function cRafraichirCtx() { if (C.ctxServeur) C.ctx = cAvecFile(C.ctxServeur); }
+
+/* --- envoi différé : file d'attente traitée dans l'ordre --- */
+function cSynchroniser() {
+  if (C.sync || navigator.onLine === false) return;
+  var a = C.file.filter(function (it) { return it.etat === 'attente'; });
+  if (!a.length) return;
+  C.sync = true; cMajFile();
+  var envoyes = 0;
+  var suivant = function () {
+    var it = C.file.filter(function (x) { return x.etat === 'attente'; })[0];
+    if (!it) return Promise.resolve();
+    return cAppelEngin(it.engin, it.cle, 'chauffeurReleve', it.p).then(function (r) {
+      C.file.splice(C.file.indexOf(it), 1); envoyes++;
+      if (it.engin === cLire('raia_cengin')) cCtx(r.contexte);
+      return cGarderFile().then(suivant);
+    }).catch(function (e) {
+      if (e.reseau) return;
+      if (e.code === 'DOUBLON') C.file.splice(C.file.indexOf(it), 1);
+      else if (e.code === 'CONFIRMER') { it.etat = 'attention'; it.msg = e.message; }
+      else if (e.code === 'CLE') { C.file.forEach(function (x) { if (x.engin === it.engin) x.etat = 'cle'; }); }
+      else { it.etat = 'erreur'; it.msg = e.message; }
+      return cGarderFile().then(suivant);
+    });
+  };
+  suivant().then(function () {
+    C.sync = false; cRafraichirCtx();
+    if (envoyes && formulaireVierge() && $('#cS')) chauffeurSaisie('✔ ' + envoyes + ' relevé(s) en attente envoyé(s).');
+    else cMajFile();
+  });
+}
+
+function cVerifierCompteur() {
+  var e = C.ctx.engin, v = Number(String($('#cK').value).replace(/\s/g, '')), a = $('#cKa');
+  if (!v || e.compteur === '' || e.compteur == null) { a.textContent = ''; return; }
+  var jours = Math.max(1, Math.round((new Date($('#cD').value || C.ctx.date) - new Date(e.dernier)) / 86400000));
+  var d = v - Number(e.compteur);
+  if (d < 0) a.innerHTML = '<span class="n-e">⚠ Inférieur au dernier compteur (' + nb(e.compteur) + ') : vérifiez.</span>';
+  else if (d > C.ctx.saut_max * jours) a.innerHTML = '<span class="n-a">⚠ +' + nb(d) + ' ' + e.unite + ' depuis le dernier relevé : vérifiez.</span>';
+  else a.innerHTML = '<span class="n-ok">+' + nb(d) + ' ' + e.unite + ' depuis le dernier relevé</span>';
+}
+
+function chauffeurEnvoyer(forcer) {
+  var b = $('#cS .ch-btn'), err = $('#cErr');
+  var k = String($('#cK').value).replace(/\s/g, '');
+  if (!C.photo && !confirm('Aucune photo du compteur. Envoyer quand même ?')) return;
+  if (!/^\d+([.,]\d+)?$/.test(k)) { err.innerHTML = '<div class="msg msg-e">Indiquez le compteur (chiffres uniquement).</div>'; return; }
+  var e = C.ctx.engin, engin = e.code, cle = cLire('raia_ccle');
+  var maintenant = new Date(), saisi = auj() + 'T' + String(maintenant.getHours()).padStart(2, '0') + ':' + String(maintenant.getMinutes()).padStart(2, '0');
+  var p = { compteur: k, compteur_lu: C.lu, date: $('#cD').value || auj(), chauffeur: $('#cN').value, chantier: $('#cC').value, carburant: $('#cL').value, depense: String($('#cM').value).replace(/\s/g, ''),
+    commentaire: $('#cO').value, panne: $('#cPa').checked, photo: C.photo ? C.photo.split(',')[1] : '', photo_ticket: C.ticket ? C.ticket.split(',')[1] : '', forcer: forcer, saisi_le: saisi };
+  var garder = function () { cGarder('raia_cnom', p.chauffeur); cGarder('raia_cch', p.chantier); };
+  var enFile = function () {
+    if (!forcer && e.compteur !== '' && e.compteur != null && Number(k.replace(',', '.')) < Number(e.compteur) &&
+      !confirm('Le compteur (' + k + ') est inférieur au dernier relevé (' + nb(e.compteur) + '). Confirmer quand même ?')) { b.disabled = false; b.textContent = 'Envoyer le relevé'; return; }
+    p.differe = true; if (Number(k.replace(',', '.')) < Number(e.compteur)) p.forcer = true;
+    C.file.push({ engin: engin, cle: cle, p: p, etat: 'attente', cree: Date.now() });
+    cGarderFile().then(function () {
+      garder(); cRafraichirCtx();
+      chauffeurSaisie('📶 Pas de réseau : relevé de ' + nb(Number(k.replace(',', '.'))) + ' ' + e.unite + ' gardé sur le téléphone. Il sera envoyé automatiquement au retour du réseau.');
+    });
+  };
+  b.disabled = true; b.textContent = 'Envoi en cours…'; err.innerHTML = '';
+  if (navigator.onLine === false) return enFile();
+  cAppelEngin(engin, cle, 'chauffeurReleve', p).then(function (r) {
+    garder(); cCtx(r.contexte);
+    chauffeurSaisie('✔ Relevé envoyé : ' + nb(k) + ' ' + C.ctx.engin.unite + ' le ' + dfr(p.date) + '. Merci !');
+    cSynchroniser();
+  }).catch(function (er) {
+    b.disabled = false; b.textContent = 'Envoyer le relevé';
+    if (er.reseau) return enFile();
+    if (er.code === 'CONFIRMER') { if (confirm(er.message + '\n\nConfirmer quand même ce compteur ?')) chauffeurEnvoyer(true); return; }
+    if (er.code === 'CLE') { cGarder('raia_ccle', null); return chauffeurConnexion(er.message); }
+    err.innerHTML = '<div class="msg msg-e">' + esc(er.message) + '</div>';
+  });
+}
+
+/* --- photo : réduction + lecture automatique du compteur --- */
+function cPreparerImage(fichier, maxPx) {
+  return new Promise(function (ok, ko) {
+    var url = URL.createObjectURL(fichier), img = new Image();
+    img.onload = function () {
+      var r = Math.min(1, maxPx / Math.max(img.width, img.height)), c = document.createElement('canvas');
+      c.width = Math.round(img.width * r); c.height = Math.round(img.height * r);
+      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+      URL.revokeObjectURL(url);
+      ok({ canvas: c, jpeg: c.toDataURL('image/jpeg', 0.72) });
+    };
+    img.onerror = ko; img.src = url;
+  });
+}
+function cChargerOCR() {
+  if (window.Tesseract) return Promise.resolve();
+  return new Promise(function (ok, ko) {
+    var s = document.createElement('script'); s.src = 'https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js';
+    s.onload = ok; s.onerror = ko; document.head.appendChild(s);
+  });
+}
+function cContraste(src, inverser) {
+  var c = document.createElement('canvas'); c.width = src.width; c.height = src.height;
+  var g = c.getContext('2d'); g.drawImage(src, 0, 0);
+  var d = g.getImageData(0, 0, c.width, c.height), p = d.data, i, v, min = 255, max = 0;
+  for (i = 0; i < p.length; i += 4) { v = 0.3 * p[i] + 0.59 * p[i + 1] + 0.11 * p[i + 2]; p[i] = v; if (v < min) min = v; if (v > max) max = v; }
+  var e = Math.max(1, max - min);
+  for (i = 0; i < p.length; i += 4) { v = (p[i] - min) * 255 / e; if (inverser) v = 255 - v; p[i] = p[i + 1] = p[i + 2] = v; }
+  g.putImageData(d, 0, 0);
+  return c;
+}
+function cCandidats(texte) {
+  var res = [];
+  (texte || '').replace(/[oO]/g, '0').replace(/[lI|]/g, '1').split('\n').forEach(function (ligne) {
+    var g = ligne.match(/\d+/g) || [];
+    for (var i = 0; i < g.length; i++) {
+      var n = '';
+      for (var j = i; j < Math.min(g.length, i + 8); j++) {
+        n += g[j];
+        if (n.length >= 3 && n.length <= 8) res.push(Number(n));
+        if (n.length > 8) break;
+      }
+    }
+  });
+  return res;
+}
+function cChoisir(cands) {
+  var e = C.ctx.engin, der = Number(e.compteur) || 0;
+  if (!cands.length) return '';
+  if (der) {
+    var jours = Math.max(1, Math.round((new Date() - new Date(e.dernier)) / 86400000)), maxi = der + Math.max(3000, C.ctx.saut_max * jours);
+    var ok = cands.filter(function (n) { return n >= der && n <= maxi; }).sort(function (a, b) { return a - b; });
+    if (ok.length) return ok[0];
+    var proches = cands.slice().sort(function (a, b) { return Math.abs(a - der) - Math.abs(b - der); });
+    return Math.abs(proches[0] - der) < der * 0.2 ? proches[0] : '';
+  }
+  return cands.sort(function (a, b) { return b - a; })[0];
+}
+function cLireCompteur(canvas) {
+  var info = $('#ocr');
+  info.innerHTML = '<span class="rond-mini"></span> Lecture du compteur sur la photo…';
+  cChargerOCR().then(function () {
+    var prep = C.worker ? Promise.resolve(C.worker) : Tesseract.createWorker('eng', 1, { langPath: 'https://tessdata.projectnaptha.com/4.0.0_fast' }).then(function (w) {
+      return w.setParameters({ tessedit_char_whitelist: '0123456789', tessedit_pageseg_mode: '11' }).then(function () { C.worker = w; return w; });
+    });
+    var lire = function (img) { return prep.then(function (w) { return w.recognize(img); }).then(function (r) { return r.data.text; }); };
+    return lire(cContraste(canvas, false)).then(function (t1) {
+      var v = cChoisir(cCandidats(t1));
+      if (v !== '') return v;
+      return lire(cContraste(canvas, true)).then(function (t2) { return cChoisir(cCandidats(t2)); });
+    });
+  }).then(function (v) {
+    if (v === '' || v == null) { info.innerHTML = 'Lecture automatique impossible : tapez le kilométrage. La photo sera jointe au relevé.'; return; }
+    C.lu = String(v);
+    if (!$('#cK').value) $('#cK').value = v;
+    cVerifierCompteur();
+    info.innerHTML = '<span class="n-ok">Lu sur la photo : <b>' + nb(v) + '</b></span> — vérifiez et corrigez si besoin.';
+  }).catch(function () { info.innerHTML = 'Lecture automatique indisponible : tapez le kilométrage. La photo sera jointe.'; });
+}
+
+/* ---------- démarrage ---------- */
+var MODE = 'chauffeur';
+if (/^</.test(MODE)) MODE = /page=chauffeur/.test(location.search) ? 'chauffeur' : '';
+(function demarrer() {
+  if (MODE === 'chauffeur') return chauffeurDemarrer();
+  var t = lire('raia_t');
+  if (!t) return ecranConnexion();
+  S.token = t;
+  google.script.run.withSuccessHandler(function (r) {
+    if (!r.ok && r.erreur === 'MDP') return ecranMotDePasse(true);
+    if (!r.ok) return finSession(r.erreur === 'SESSION' ? 'Session expirée. Veuillez vous reconnecter.' : r.message);
+    S.ctx = r.data; S.user = r.data.utilisateur; stocker('raia_u', S.user.identifiant);
+    LOC.set(cleHL('contexte', {}), { le: Date.now(), data: r.data });
+    coquille();
+  }).withFailureHandler(function () {
+    LOC.get(cleHL('contexte', {})).then(function (c) {
+      if (!c) return ecranConnexion('Serveur injoignable : vérifiez la connexion internet.');
+      S.ctx = c.data; S.user = c.data.utilisateur; coquille(); bandeauHL(c.le);
+    });
+  }).api(t, 'contexte', {});
+})();
+</script>
+</body>
+</html>
