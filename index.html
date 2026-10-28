@@ -196,6 +196,7 @@ table.tl tbody tr,table.t tr.tl{cursor:default}
 .ch-file .it button.p{background:var(--vert);color:#fff;border-color:var(--vert)}
 .ch-hist .att{color:#B26A00}
 .ch-file .t b{display:inline;margin:0}
+.ch-galerie{display:block;text-align:center;font-size:13px!important;font-weight:600!important;color:var(--vert2)!important;text-decoration:underline;cursor:pointer;margin:2px 0 4px}
 #hl{position:fixed;top:0;left:0;right:0;z-index:999;background:#FFF3CD;color:#7A5200;border-bottom:1px solid #FFE08A;padding:7px 14px;font-size:13px;text-align:center}
 body.hors-ligne .principal{padding-top:34px}
 .rond-mini{display:inline-block;width:12px;height:12px;border:2px solid var(--vert-l);border-top-color:var(--vert);border-radius:50%;animation:t 1s linear infinite;vertical-align:-2px;margin-right:4px}
@@ -1415,6 +1416,7 @@ function chauffeurSaisie(msgOk) {
     '<form id="cS" class="ch-carte">' +
     '<label>1. Photo du compteur (tableau de bord)</label>' +
     '<label class="ch-photo" id="lPh"><input id="cPh" type="file" accept="image/*" capture="environment" hidden><span id="tPh">📷 Prendre la photo</span><img id="iPh" hidden></label>' +
+    '<label class="ch-galerie"><input id="cPh2" type="file" accept="image/*" hidden>🖼 Caméra noire ou bloquée ? Choisir une photo déjà prise</label>' +
     '<div id="ocr" class="compte"></div>' +
     '<label>2. Compteur (' + u + ')</label><input id="cK" inputmode="numeric" pattern="[0-9 ]*" required placeholder="Ex. ' + esc(e.compteur || '125000') + '">' +
     '<div id="cKa" class="compte"></div>' +
@@ -1431,7 +1433,7 @@ function chauffeurSaisie(msgOk) {
   cMajFile(); cPrechargerOCR();
   $('#cQ').onclick = function (ev) { ev.preventDefault(); C.token = null; chauffeurConnexion(); };
   $('#cK').oninput = cVerifierCompteur;
-  $('#cPh').onchange = function () {
+  $('#cPh2').onchange = $('#cPh').onchange = function () {
     var f = this.files && this.files[0]; if (!f) return;
     $('#tPh').textContent = 'Préparation de la photo…';
     cPreparerImage(f, 1400).then(function (r) {

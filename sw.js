@@ -1,5 +1,5 @@
 /* RAIA Chauffeur – fonctionnement hors ligne */
-var VERSION = 'raia-ch-fdffaab9f4';
+var VERSION = 'raia-ch-aad2f56de3';
 var COQUILLE = ["./", "index.html", "manifest.webmanifest", "icone-192.png", "icone-512.png", "icone-maskable-512.png", "apple-touch-icon.png", "favicon-32.png"];
 var EXTERNES = /^https:\/\/(cdn\.jsdelivr\.net|tessdata\.projectnaptha\.com)\//;
 self.addEventListener('install', function (e) {
