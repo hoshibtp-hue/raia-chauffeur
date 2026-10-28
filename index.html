@@ -278,6 +278,8 @@ function nb(v) { return (v === '' || v == null || isNaN(v)) ? '' : NF2.format(Nu
 function pct(v) { return (v == null || isNaN(v)) ? '' : (Number(v) * 100).toFixed(1).replace('.', ',') + ' %'; }
 function dfr(v) { var m = String(v || '').match(/^(\d{4})-(\d{2})-(\d{2})/); return m ? m[3] + '/' + m[2] + '/' + m[1] : (v || ''); }
 function mFr(k) { var M = ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.']; var p = k.split('-'); return M[Number(p[1]) - 1] + ' ' + p[0].slice(2); }
+/* Règle HOSHI BTP : un relevé pris le matin (avant 12 h) est le relevé de la veille. */
+function jourReleve(base) { var b = base || auj(); if (new Date().getHours() >= 12) return b; var d = new Date(b + 'T12:00:00'); d.setDate(d.getDate() - 1); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
 function auj() { var d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
 function toast(msg, err) { var t = document.createElement('div'); t.className = 'toast' + (err ? ' e' : ''); t.textContent = msg; document.body.appendChild(t); setTimeout(function () { t.remove(); }, err ? 5000 : 2600); }
 function stocker(k, v) { try { if (v == null) sessionStorage.removeItem(k); else sessionStorage.setItem(k, v); } catch (e) { } }
@@ -896,7 +898,7 @@ function ouvrirFormulaire(t, ligne) {
   var lecture = !nouveau && !d.modifier;
   var l = ligne || {};
   if (nouveau) {
-    sc.champs.forEach(function (c) { if (c.t === 'date' && (c.n === 'date' || c.n === 'date_emission')) l[c.n] = auj(); });
+    sc.champs.forEach(function (c) { if (c.t === 'date' && (c.n === 'date' || c.n === 'date_emission')) l[c.n] = t === 'releves' ? jourReleve() : auj(); });
     if (t === 'factures') { l.etat = 'Impayé'; l.delai = 30; }
     if (t === 'engins') l.unite = 'km';
     var F = S.filtres[t]; if (F && F.f && F.f.engin && (t === 'releves' || t === 'depenses')) l.engin = F.f.engin;
@@ -1408,7 +1410,8 @@ function chauffeurSaisie(msgOk) {
   var pers = (x.listes.personnel || []).map(function (n) { return '<option>' + esc(n) + '</option>'; }).join('');
   var chs = (x.listes.chantiers || []).map(function (n) { return '<option>' + esc(n) + '</option>'; }).join('');
   var der = e.compteur !== '' && e.compteur != null ? nb(e.compteur) + ' ' + u + ' le ' + dfr(e.dernier) : 'aucun relevé';
-  var jour = (x.recu_le && Date.now() - x.recu_le < 6 * 3600000) || auj() < x.date ? x.date : auj(); /* date du serveur si le contexte est récent */
+  var jourMax = (x.recu_le && Date.now() - x.recu_le < 6 * 3600000) || auj() < x.date ? x.date : auj(); /* date du serveur si le contexte est récent */
+  var jour = jourReleve(jourMax), veille = jour < jourMax;
   cEcran(cTete(e.code + (e.immatriculation ? ' · ' + e.immatriculation : '')) +
     (msgOk ? '<div class="msg msg-i ch-ok">' + msgOk + '</div>' : '') +
     '<div id="cFile"></div>' +
@@ -1421,7 +1424,7 @@ function chauffeurSaisie(msgOk) {
     '<label>2. Compteur (' + u + ')</label><input id="cK" inputmode="numeric" pattern="[0-9 ]*" required placeholder="Ex. ' + esc(e.compteur || '125000') + '">' +
     '<div id="cKa" class="compte"></div>' +
     '<label>Chauffeur</label><input id="cN" list="lN" value="' + esc(nom) + '" required><datalist id="lN">' + pers + '</datalist>' +
-    '<label>Date</label><input id="cD" type="date" value="' + esc(jour) + '" max="' + esc(jour) + '">' +
+    '<label>Date du relevé' + (veille ? ' <span style="font-weight:400;color:var(--gris)">(avant midi = relevé de la veille)</span>' : '') + '</label><input id="cD" type="date" value="' + esc(jour) + '" max="' + esc(jourMax) + '">' +
     '<label>Chantier du jour</label><input id="cC" list="lC" value="' + esc(cLire('raia_cch') || '') + '"><datalist id="lC">' + chs + '</datalist>' +
     '<div class="ch-deux"><div><label>Carburant (L)</label><input id="cL" inputmode="decimal" placeholder="0"></div><div><label>Dépense (F CFA)</label><input id="cM" inputmode="numeric" placeholder="0"></div></div>' +
     '<label class="ch-photo petit" id="lTk"><input id="cTk" type="file" accept="image/*" capture="environment" hidden><span id="tTk">🧾 Photo du ticket carburant (facultatif)</span><img id="iTk" hidden></label>' +
