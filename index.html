@@ -112,6 +112,9 @@ a{color:var(--vert2)}
 .outils .esp{flex:1}
 tr.grp td{background:var(--vert-l);color:var(--vert);font-weight:700;cursor:pointer}
 tr.grp td.n{white-space:nowrap}
+table.t tr.err td{background:#FDECEC;color:#B42318}
+table.t tr.err:hover td{background:#FBD9D9}
+table.t tr.trou td{background:#D92D20;color:#fff;font-weight:700;font-size:12.5px;padding:5px 10px;cursor:default}
 .btn-on{background:var(--vert);color:#fff;border-color:var(--vert)}
 .compte{font-size:12px;color:var(--gris)}
 .tab-wrap{background:#fff;border-radius:var(--rayon);box-shadow:var(--ombre);overflow:auto}
@@ -757,7 +760,7 @@ function filtresSpecifiques(t) {
 }
 
 function lignesFiltrees(t) {
-  var F = S.filtres[t], q = F.q.toLowerCase().trim(), L = S.cache[t] || [];
+  var F = S.filtres[t], q = F.q.toLowerCase().trim(), L = S.cache[t] || [], AN = F.anom && t === 'releves' ? anomaliesReleves() : null;
   var res = L.filter(function (l) {
     for (var k in F.f) {
       var v = F.f[k]; if (!v) continue;
@@ -765,6 +768,7 @@ function lignesFiltrees(t) {
       else if (k === 'mois') { if (String(l.date || '').slice(0, 7) !== v) return false; }
       else if (String(l[k] || '') !== v) return false;
     }
+    if (AN && !(AN.err[l.id] || AN.trou[l.id])) return false;
     if (!q) return true;
     for (var c in l) if (String(l[c]).toLowerCase().indexOf(q) >= 0) return true;
     return false;
@@ -790,6 +794,45 @@ function lignesFiltrees(t) {
 function nomGroupe(l) { var c = String(l.chantier || '').trim(); return c || 'Sans chantier'; 
 }
 
+/* Relevés : jours non saisis entre deux relevés d'un même engin, et lignes en erreur (rouge). */
+function anomaliesReleves() {
+  var L = S.cache.releves || [], E = {}, par = {}, err = {}, trou = {}, nbTrous = 0;
+  (S.cache.engins || []).forEach(function (e) { E[e.code || e.id] = e; });
+  var iso = /^\d{4}-\d{2}-\d{2}$/, j = 86400000, aujd = auj();
+  L.forEach(function (l) {
+    var d = String(l.date || '').slice(0, 10);
+    if (!iso.test(d)) { (err[l.id] = err[l.id] || []).push('date invalide'); return; }
+    if (d > aujd) (err[l.id] = err[l.id] || []).push('date dans le futur');
+    (par[l.engin || '?'] = par[l.engin || '?'] || []).push(l);
+  });
+  Object.keys(par).forEach(function (en) {
+    var ls = par[en].sort(function (a, b) { return a.date < b.date ? -1 : a.date > b.date ? 1 : (Number(a.compteur) || 0) - (Number(b.compteur) || 0); });
+    var h = E[en] && E[en].unite === 'h', prec = null, vus = {};
+    ls.forEach(function (l, i) {
+      var d = String(l.date).slice(0, 10), k = String(l.compteur == null ? '' : l.compteur).trim(), e = [];
+      if (vus[d]) e.push('2 relevés le même jour'); vus[d] = 1;
+      if (k === '') e.push(l.photo ? 'compteur à lire sur la photo' : 'compteur manquant');
+      if (i > 0) {
+        var p = ls[i - 1], dp = String(p.date).slice(0, 10), ecart = Math.round((new Date(d + 'T12:00:00') - new Date(dp + 'T12:00:00')) / j);
+        if (ecart > 1) { trou[l.id] = { n: ecart - 1, du: dp, au: d, engin: en }; nbTrous++; }
+      }
+      if (k !== '' && prec) {
+        var n = Number(k), np = Number(prec.compteur), jrs = Math.max(1, Math.round((new Date(d + 'T12:00:00') - new Date(String(prec.date).slice(0, 10) + 'T12:00:00')) / j));
+        if (n < np) e.push('compteur inférieur au relevé précédent (' + nb(np) + ')');
+        else if (n - np > (h ? 24 : 1500) * jrs) e.push('saut de compteur anormal (+' + nb(n - np) + (h ? ' h' : ' km') + ' en ' + jrs + ' j)');
+      }
+      if (k !== '') prec = l;
+      if (e.length) err[l.id] = (err[l.id] || []).concat(e);
+    });
+  });
+  return { err: err, trou: trou, nbErr: Object.keys(err).length, nbTrous: nbTrous };
+}
+function ligneTrou(z, nCols) {
+  var lendemain = function (d, s) { var x = new Date(d + 'T12:00:00'); x.setDate(x.getDate() + s); return x.getFullYear() + '-' + String(x.getMonth() + 1).padStart(2, '0') + '-' + String(x.getDate()).padStart(2, '0'); };
+  var du = lendemain(z.du, 1), au = lendemain(z.au, -1);
+  return '<tr class="trou"><td colspan="' + nCols + '">⚠ ' + esc(z.engin) + ' : ' + z.n + ' jour' + (z.n > 1 ? 's' : '') + ' non saisi' + (z.n > 1 ? 's' : '') + (z.n > 1 ? ' (du ' + dfr(du) + ' au ' + dfr(au) + ')' : ' (' + dfr(du) + ')') + '</td></tr>';
+}
+
 function dessinerTable(t) {
   var sc = schema(t), F = S.filtres[t], cols = colonnesVisibles(t), L = S.cache[t] || [];
   var fs = filtresSpecifiques(t).map(function (f) {
@@ -808,7 +851,13 @@ function dessinerTable(t) {
   if (F.page >= nbPages) F.page = nbPages - 1;
   var page = res.slice(F.page * parPage, (F.page + 1) * parPage);
   var tete = cols.map(function (c) { return '<th data-tri="' + c.n + '" class="' + (estNum(c) ? 'n' : '') + '">' + esc(c.l) + (F.tri === c.n ? (F.desc ? ' ▼' : ' ▲') : '') + '</th>'; }).join('');
-  var ligneTr = function (l) { return '<tr data-id="' + esc(l.id) + '">' + cols.map(function (c) { return '<td class="' + (estNum(c) ? 'n' : '') + '">' + affiche(c, l[c.n]) + '</td>'; }).join('') + '</tr>'; };
+  var A = t === 'releves' ? anomaliesReleves() : null;
+  var ligneTr = function (l) {
+    var e = A && A.err[l.id], z = A && A.trou[l.id];
+    var tr = '<tr data-id="' + esc(l.id) + '"' + (e ? ' class="err" title="' + esc('⚠ ' + e.join(' · ')) + '"' : '') + '>' + cols.map(function (c) { return '<td class="' + (estNum(c) ? 'n' : '') + '">' + affiche(c, l[c.n]) + '</td>'; }).join('') + '</tr>';
+    if (!z) return tr;
+    return F.tri === 'date' && !F.desc ? ligneTrou(z, cols.length) + tr : tr + ligneTrou(z, cols.length);
+  };
   var corps;
   if (F.grp) {
     var grp = {}, ordre = [];
@@ -830,6 +879,7 @@ function dessinerTable(t) {
   $('#contenu').innerHTML =
     '<div class="outils"><input type="search" id="q" placeholder="Rechercher…" value="' + esc(F.q) + '">' + fs +
     (t === 'factures' ? '<button class="btn btn-c btn-s' + (F.grp ? ' btn-on' : '') + '" id="bGrp">Regrouper par chantier</button>' : '') +
+    (A ? '<button class="btn btn-c btn-s' + (F.anom ? ' btn-on' : '') + '" id="bAnom" title="Lignes rouges : erreurs (compteur manquant, en recul, saut anormal, doublon, date). Bandeaux rouges : jours non saisis.">⚠ Anomalies : ' + A.nbErr + ' erreur' + (A.nbErr > 1 ? 's' : '') + ' · ' + A.nbTrous + ' trou' + (A.nbTrous > 1 ? 's' : '') + '</button>' : '') +
     '<span class="esp"></span><span class="compte">' + res.length + ' / ' + L.length + ' lignes</span>' +
     '<button class="btn btn-c btn-s" id="bCsv">Exporter (Excel)</button></div>' +
     '<div class="tab-wrap"><table class="t"><thead><tr>' + tete + '</tr></thead><tbody>' + (corps || '<tr><td colspan="' + cols.length + '" class="vide">Aucune donnée</td></tr>') + '</tbody>' +
@@ -839,6 +889,7 @@ function dessinerTable(t) {
   $$('[data-f]').forEach(function (s) { s.onchange = function () { F.f[s.getAttribute('data-f')] = s.value; F.page = 0; dessinerTable(t); }; });
   $$('th[data-tri]').forEach(function (th) { th.onclick = function () { var n = th.getAttribute('data-tri'); if (F.tri === n) F.desc = !F.desc; else { F.tri = n; F.desc = false; } dessinerTable(t); }; });
   $$('tbody tr[data-id]').forEach(function (tr) { tr.onclick = function () { ouvrirParId(t, tr.getAttribute('data-id')); }; });
+  if ($('#bAnom')) $('#bAnom').onclick = function () { F.anom = !F.anom; F.page = 0; dessinerTable(t); };
   if ($('#bGrp')) $('#bGrp').onclick = function () { F.grp = !F.grp; F.page = 0; dessinerTable(t); };
   $$('tr.grp').forEach(function (tr) { tr.onclick = function () { var g = tr.getAttribute('data-g'); F.ferme[g] = !F.ferme[g]; dessinerTable(t); }; });
   $('#pPrec').onclick = function () { F.page--; dessinerTable(t); };
@@ -1405,7 +1456,7 @@ function chauffeurConnexion(msg) {
 
 function chauffeurSaisie(msgOk) {
   var x = C.ctx, e = x.engin, u = e.unite;
-  C.photo = null; C.ticket = null; C.lu = '';
+  C.photo = null; C.ticket = null; C.lu = ''; C.ocr = null;
   var nom = cLire('raia_cnom') || e.conducteur || '';
   var pers = (x.listes.personnel || []).map(function (n) { return '<option>' + esc(n) + '</option>'; }).join('');
   var chs = (x.listes.chantiers || []).map(function (n) { return '<option>' + esc(n) + '</option>'; }).join('');
@@ -1421,7 +1472,7 @@ function chauffeurSaisie(msgOk) {
     '<label class="ch-photo" id="lPh"><input id="cPh" type="file" accept="image/*" capture="environment" hidden><span id="tPh">📷 Prendre la photo</span><img id="iPh" hidden></label>' +
     '<label class="ch-galerie"><input id="cPh2" type="file" accept="image/*" hidden>🖼 Caméra noire ou bloquée ? Choisir une photo déjà prise</label>' +
     '<div id="ocr" class="compte"></div>' +
-    '<label>2. Compteur (' + u + ')</label><input id="cK" inputmode="numeric" pattern="[0-9 ]*" required placeholder="Ex. ' + esc(e.compteur || '125000') + '">' +
+    '<label>2. Compteur (' + u + ') <span style="font-weight:400;color:var(--gris)">– rempli d\'après la photo, sinon le bureau le lira</span></label><input id="cK" inputmode="numeric" pattern="[0-9 ]*" placeholder="Ex. ' + esc(e.compteur || '125000') + '">' +
     '<div id="cKa" class="compte"></div>' +
     '<label>Chauffeur</label><input id="cN" list="lN" value="' + esc(nom) + '" required><datalist id="lN">' + pers + '</datalist>' +
     '<label>Date du relevé' + (veille ? ' <span style="font-weight:400;color:var(--gris)">(avant midi = relevé de la veille)</span>' : '') + '</label><input id="cD" type="date" value="' + esc(jour) + '" max="' + esc(jourMax) + '">' +
@@ -1441,7 +1492,7 @@ function chauffeurSaisie(msgOk) {
     $('#tPh').textContent = 'Préparation de la photo…';
     cPreparerImage(f, 1400).then(function (r) {
       C.photo = r.jpeg; $('#iPh').src = r.jpeg; $('#iPh').hidden = false; $('#tPh').textContent = '📷 Reprendre la photo';
-      cLireCompteur(r.canvas);
+      C.ocr = cLireCompteur(r.canvas);
     }).catch(function () { $('#tPh').textContent = '📷 Prendre la photo'; toast('Photo illisible, réessayez.', true); });
   };
   $('#cTk').onchange = function () {
@@ -1461,7 +1512,7 @@ function cMajFile() {
   if (f.length) {
     if (!hl) h += '<b>⏳ ' + f.length + ' relevé(s) en attente d\'envoi' + (C.sync ? ' – envoi en cours…' : '') + '</b>';
     h += f.map(function (it, i) {
-      var t = '<div class="it">' + esc(it.engin) + ' · ' + dfr(it.p.date) + ' · ' + nb(Number(String(it.p.compteur).replace(',', '.'))) + (it.p.carburant ? ' · ' + esc(it.p.carburant) + ' L' : '') + (it.p.photo ? ' · 📷' : '');
+      var t = '<div class="it">' + esc(it.engin) + ' · ' + dfr(it.p.date) + ' · ' + (String(it.p.compteur) === '' ? 'compteur sur la photo' : nb(Number(String(it.p.compteur).replace(',', '.')))) + (it.p.carburant ? ' · ' + esc(it.p.carburant) + ' L' : '') + (it.p.photo ? ' · 📷' : '');
       if (it.etat === 'attention') t += '<div class="n-a">⚠ ' + esc(it.msg) + '</div><button class="p" data-ok="' + i + '">Confirmer ce compteur</button><button data-sup="' + i + '">Supprimer</button>';
       else if (it.etat === 'erreur') t += '<div class="n-e">' + esc(it.msg) + '</div><button data-re="' + i + '">Réessayer</button><button data-sup="' + i + '">Supprimer</button>';
       else if (it.etat === 'cle') t += '<div class="n-a">Code de l\'engin changé : reconnectez-vous à ' + esc(it.engin) + ' pour envoyer.</div>';
@@ -1520,28 +1571,36 @@ function cVerifierCompteur() {
 function chauffeurEnvoyer(forcer) {
   var b = $('#cS .ch-btn'), err = $('#cErr');
   var k = String($('#cK').value).replace(/\s/g, '');
+  /* La lecture automatique est encore en cours : on l'attend (15 s au plus) avant d'envoyer. */
+  if (k === '' && C.photo && C.ocr && !C.ocrAttendu) {
+    C.ocrAttendu = true; b.disabled = true; b.textContent = 'Lecture du compteur…';
+    var fin = function () { b.disabled = false; b.textContent = 'Envoyer le relevé'; chauffeurEnvoyer(forcer); C.ocrAttendu = false; };
+    Promise.race([C.ocr, new Promise(function (r) { setTimeout(r, 15000); })]).then(fin, fin);
+    return;
+  }
+  if (k === '' && !C.photo) { err.innerHTML = '<div class="msg msg-e">Prenez la photo du compteur, ou tapez le compteur.</div>'; return; }
   if (!C.photo && !confirm('Aucune photo du compteur. Envoyer quand même ?')) return;
-  if (!/^\d+([.,]\d+)?$/.test(k)) { err.innerHTML = '<div class="msg msg-e">Indiquez le compteur (chiffres uniquement).</div>'; return; }
+  if (k !== '' && !/^\d+([.,]\d+)?$/.test(k)) { err.innerHTML = '<div class="msg msg-e">Compteur : chiffres uniquement.</div>'; return; }
   var e = C.ctx.engin, engin = e.code, cle = cLire('raia_ccle');
   var maintenant = new Date(), saisi = auj() + 'T' + String(maintenant.getHours()).padStart(2, '0') + ':' + String(maintenant.getMinutes()).padStart(2, '0');
   var p = { compteur: k, compteur_lu: C.lu, date: $('#cD').value || auj(), chauffeur: $('#cN').value, chantier: $('#cC').value, carburant: $('#cL').value, depense: String($('#cM').value).replace(/\s/g, ''),
     commentaire: $('#cO').value, panne: $('#cPa').checked, photo: C.photo ? C.photo.split(',')[1] : '', photo_ticket: C.ticket ? C.ticket.split(',')[1] : '', forcer: forcer, saisi_le: saisi };
   var garder = function () { cGarder('raia_cnom', p.chauffeur); cGarder('raia_cch', p.chantier); };
   var enFile = function () {
-    if (!forcer && e.compteur !== '' && e.compteur != null && Number(k.replace(',', '.')) < Number(e.compteur) &&
+    if (!forcer && k !== '' && e.compteur !== '' && e.compteur != null && Number(k.replace(',', '.')) < Number(e.compteur) &&
       !confirm('Le compteur (' + k + ') est inférieur au dernier relevé (' + nb(e.compteur) + '). Confirmer quand même ?')) { b.disabled = false; b.textContent = 'Envoyer le relevé'; return; }
-    p.differe = true; if (Number(k.replace(',', '.')) < Number(e.compteur)) p.forcer = true;
+    p.differe = true; if (k !== '' && Number(k.replace(',', '.')) < Number(e.compteur)) p.forcer = true;
     C.file.push({ engin: engin, cle: cle, p: p, etat: 'attente', cree: Date.now() });
     cGarderFile().then(function () {
       garder(); cRafraichirCtx();
-      chauffeurSaisie('📶 Pas de réseau : relevé de ' + nb(Number(k.replace(',', '.'))) + ' ' + e.unite + ' gardé sur le téléphone. Il sera envoyé automatiquement au retour du réseau.');
+      chauffeurSaisie('📶 Pas de réseau : relevé ' + (k === '' ? '(compteur sur la photo)' : 'de ' + nb(Number(k.replace(',', '.'))) + ' ' + e.unite) + ' gardé sur le téléphone. Il sera envoyé automatiquement au retour du réseau.');
     });
   };
   b.disabled = true; b.textContent = 'Envoi en cours…'; err.innerHTML = '';
   if (navigator.onLine === false) return enFile();
   cAppelEngin(engin, cle, 'chauffeurReleve', p).then(function (r) {
     garder(); cCtx(r.contexte);
-    chauffeurSaisie('✔ Relevé envoyé : ' + nb(k) + ' ' + C.ctx.engin.unite + ' le ' + dfr(p.date) + '. Merci !');
+    chauffeurSaisie('✔ Relevé envoyé' + (k === '' ? ' avec la photo (le bureau lira le compteur)' : ' : ' + nb(k) + ' ' + C.ctx.engin.unite) + ' le ' + dfr(p.date) + '. Merci !');
     cSynchroniser();
   }).catch(function (er) {
     b.disabled = false; b.textContent = 'Envoyer le relevé';
@@ -1613,7 +1672,7 @@ function cChoisir(cands) {
 function cLireCompteur(canvas) {
   var info = $('#ocr');
   info.innerHTML = '<span class="rond-mini"></span> Lecture du compteur sur la photo…';
-  cChargerOCR().then(function () {
+  return cChargerOCR().then(function () {
     var prep = C.worker ? Promise.resolve(C.worker) : Tesseract.createWorker('eng', 1, { langPath: 'https://tessdata.projectnaptha.com/4.0.0_fast' }).then(function (w) {
       return w.setParameters({ tessedit_char_whitelist: '0123456789', tessedit_pageseg_mode: '11' }).then(function () { C.worker = w; return w; });
     });
@@ -1624,12 +1683,12 @@ function cLireCompteur(canvas) {
       return lire(cContraste(canvas, true)).then(function (t2) { return cChoisir(cCandidats(t2)); });
     });
   }).then(function (v) {
-    if (v === '' || v == null) { info.innerHTML = 'Lecture automatique impossible : tapez le kilométrage. La photo sera jointe au relevé.'; return; }
+    if (v === '' || v == null) { info.innerHTML = 'Chiffres non reconnus automatiquement : vous pouvez taper le compteur, ou envoyer tel quel – le bureau le lira sur la photo.'; return; }
     C.lu = String(v);
     if (!$('#cK').value) $('#cK').value = v;
     cVerifierCompteur();
     info.innerHTML = '<span class="n-ok">Lu sur la photo : <b>' + nb(v) + '</b></span> — vérifiez et corrigez si besoin.';
-  }).catch(function () { info.innerHTML = 'Lecture automatique indisponible : tapez le kilométrage. La photo sera jointe.'; });
+  }).catch(function () { info.innerHTML = 'Lecture automatique indisponible : vous pouvez taper le compteur, ou envoyer tel quel – le bureau le lira sur la photo.'; });
 }
 
 /* ---------- démarrage ---------- */
