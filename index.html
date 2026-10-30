@@ -238,12 +238,17 @@ window.google = { script: { run: (function () {
   return mk(null, null);
 })() } };
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () { }); });
-  var recharge = false;
-  navigator.serviceWorker && navigator.serviceWorker.addEventListener('controllerchange', function () {
-    if (recharge) return; recharge = true;
-    var k = document.getElementById('cK'); if (!k || !k.value) location.reload();
-  });
+  window.addEventListener('load', function () { navigator.serviceWorker.register('sw.js').then(function (reg) {
+    /* L'appli reste souvent ouverte en arrière-plan : on cherche une mise à jour à chaque retour et toutes les 30 min. */
+    var verifier = function () { if (navigator.onLine !== false) reg.update().catch(function () { }); };
+    document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'visible') verifier(); });
+    setInterval(verifier, 30 * 60000);
+  }).catch(function () { }); });
+  var recharge = false, aRecharger = false;
+  var formulaireLibre = function () { var k = document.getElementById('cK'); return !(k && k.value) && !(window.C && C.photo); };
+  var rechargerSiLibre = function () { if (aRecharger && !recharge && formulaireLibre()) { recharge = true; location.reload(); } };
+  navigator.serviceWorker && navigator.serviceWorker.addEventListener('controllerchange', function () { aRecharger = true; rechargerSiLibre(); });
+  document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'visible') rechargerSiLibre(); });
 }
 </script>
 <script>
@@ -1672,6 +1677,18 @@ function cChoisir(cands) {
 function cLireCompteur(canvas) {
   var info = $('#ocr');
   info.innerHTML = '<span class="rond-mini"></span> Lecture du compteur sur la photo…';
+  /* 1) Lecture par le serveur (Google, plus fiable) si le réseau est là ; 2) sinon lecture sur le téléphone. */
+  var serveur = navigator.onLine === false || !C.photo ? Promise.reject() :
+    cAppelEngin(C.ctx.engin.code, cLire('raia_ccle'), 'chauffeurLirePhoto', { photo: C.photo.split(',')[1] }).then(function (r) { if (r.valeur === '' || r.valeur == null) throw new Error('vide'); return r.valeur; });
+  return serveur.catch(function () { return cLireTelephone(canvas); }).then(function (v) {
+    if (v === '' || v == null) { info.innerHTML = 'Chiffres non reconnus automatiquement : vous pouvez taper le compteur, ou envoyer tel quel – le bureau le lira sur la photo.'; return; }
+    C.lu = String(v);
+    if (!$('#cK').value) $('#cK').value = v;
+    cVerifierCompteur();
+    info.innerHTML = '<span class="n-ok">Lu sur la photo : <b>' + nb(v) + '</b></span> — vérifiez et corrigez si besoin.';
+  }).catch(function () { info.innerHTML = 'Lecture automatique indisponible : vous pouvez taper le compteur, ou envoyer tel quel – le bureau le lira sur la photo.'; });
+}
+function cLireTelephone(canvas) {
   return cChargerOCR().then(function () {
     var prep = C.worker ? Promise.resolve(C.worker) : Tesseract.createWorker('eng', 1, { langPath: 'https://tessdata.projectnaptha.com/4.0.0_fast' }).then(function (w) {
       return w.setParameters({ tessedit_char_whitelist: '0123456789', tessedit_pageseg_mode: '11' }).then(function () { C.worker = w; return w; });
@@ -1682,13 +1699,7 @@ function cLireCompteur(canvas) {
       if (v !== '') return v;
       return lire(cContraste(canvas, true)).then(function (t2) { return cChoisir(cCandidats(t2)); });
     });
-  }).then(function (v) {
-    if (v === '' || v == null) { info.innerHTML = 'Chiffres non reconnus automatiquement : vous pouvez taper le compteur, ou envoyer tel quel – le bureau le lira sur la photo.'; return; }
-    C.lu = String(v);
-    if (!$('#cK').value) $('#cK').value = v;
-    cVerifierCompteur();
-    info.innerHTML = '<span class="n-ok">Lu sur la photo : <b>' + nb(v) + '</b></span> — vérifiez et corrigez si besoin.';
-  }).catch(function () { info.innerHTML = 'Lecture automatique indisponible : vous pouvez taper le compteur, ou envoyer tel quel – le bureau le lira sur la photo.'; });
+  });
 }
 
 /* ---------- démarrage ---------- */

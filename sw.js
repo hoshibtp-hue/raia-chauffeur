@@ -1,5 +1,5 @@
 /* RAIA Chauffeur – fonctionnement hors ligne */
-var VERSION = 'raia-ch-b4a93f2ba6';
+var VERSION = 'raia-ch-4bba0ca841';
 var COQUILLE = ["./", "index.html", "manifest.webmanifest", "icone-192.png", "icone-512.png", "icone-maskable-512.png", "apple-touch-icon.png", "favicon-32.png"];
 var EXTERNES = /^https:\/\/(cdn\.jsdelivr\.net|tessdata\.projectnaptha\.com)\//;
 self.addEventListener('install', function (e) {
@@ -23,7 +23,7 @@ self.addEventListener('fetch', function (e) {
   }
   if (new URL(url).origin !== self.location.origin) return;
   if (req.mode === 'navigate') {                           /* page : réseau d'abord, sinon copie */
-    e.respondWith(fetch(req).then(function (net) {
+    e.respondWith(fetch(req.url, { cache: 'no-cache', credentials: 'same-origin' }).then(function (net) {
       var copie = net.clone(); caches.open(VERSION).then(function (c) { c.put('index.html', copie); }); return net;
     }).catch(function () { return caches.match('index.html'); }));
     return;
